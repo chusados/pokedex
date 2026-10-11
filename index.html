@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es" class="scroll-smooth h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokédex TCG Lens & Archivo Personal (1-1025)</title>
+  <title>Pokédex TCG Lens & Archivo Personal (1-1025) - Multilingüe ES/EN/JA</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@800;900&family=Outfit:ital,wght@0,300;0,400;0,600;0,800;1,300;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@800;900&family=Outfit:ital,wght@0,300;0,400;0,600;0,800;1,300;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
 
-  <!-- Tesseract.js v5 (OCR en navegador) -->
+  <!-- Tesseract.js v5 (OCR local compatible con spa, eng y jpn) -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <script>
@@ -24,6 +24,7 @@
             display: ['"Outfit"', 'sans-serif'],
             impact: ['"Cabinet Grotesk"', '"Plus Jakarta Sans"', 'sans-serif'],
             mono: ['"Space Mono"', 'monospace'],
+            jp: ['"Noto Sans JP"', '"Plus Jakarta Sans"', 'sans-serif'],
           },
           colors: {
             tcg: {
@@ -42,16 +43,31 @@
   </script>
 
   <style>
-    /* PROTECCIÓN ANTICOPIA & SEGURIDAD */
-    html, body {
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
-      user-select: none !important;
+    /* GARANTÍA DE SCROLL FLUIDO & PROTECCIÓN */
+    html {
+      overflow-x: hidden;
+      overflow-y: scroll !important;
+      height: auto;
+      min-height: 100%;
+    }
+
+    body {
+      overflow-x: hidden;
+      overflow-y: visible !important;
+      min-height: 100vh;
       background-color: #ffffff;
       color: #0F172A;
       font-feature-settings: "cv02", "cv03", "cv04", "cv11";
       -webkit-font-smoothing: antialiased;
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      -ms-user-select: none !important;
+      user-select: none !important;
+    }
+
+    input, textarea, button, select {
+      -webkit-user-select: auto !important;
+      user-select: auto !important;
     }
 
     img {
@@ -103,7 +119,6 @@
       animation: shakeAuth 0.35s ease-in-out;
     }
 
-    /* Estilo del Archivador de 2 páginas abiertas */
     .binder-spine {
       background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%);
       box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
@@ -117,23 +132,38 @@
       box-shadow: 1px 2px 4px rgba(0,0,0,0.15);
     }
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: #F8FAFC; }
-    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
   </style>
 </head>
 <body class="relative min-h-screen blueprint-grid flex flex-col selection:bg-rose-100 selection:text-rose-900" oncontextmenu="handleContextMenu(event)">
 
   <!-- Toast de Notificación de Seguridad -->
-  <div id="securityToast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-mono shadow-2xl flex items-center gap-2.5">
+  <div id="securityToast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 text-white px-4 py-2.5 rounded-xl border border-slate-700 text-xs font-mono shadow-2xl flex items-center gap-2.5">
     <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
     <span id="securityToastMsg">Contenido protegido contra copia e inspección.</span>
   </div>
 
-  <!-- 1. PANTALLA DE ACCESO / LOGIN POKÉDEX (HASH SHA-256) -->
-  <div id="authGateOverlay" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 blueprint-grid">
-    <div id="authBox" class="relative w-full max-w-md bg-white border-2 border-tcg-dark rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+  <!-- Modal Genérico de Confirmación (Reemplazo estricto de confirm()) -->
+  <div id="appConfirmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="relative w-full max-w-sm bg-white border-2 border-tcg-dark rounded-2xl p-6 shadow-2xl space-y-4 font-mono">
+      <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+        <div class="w-8 h-8 rounded-lg bg-rose-100 text-tcg-crimson flex items-center justify-center font-bold text-base">⚠️</div>
+        <h3 id="appConfirmTitle" class="text-sm font-extrabold text-tcg-dark uppercase">Confirmación Requerida</h3>
+      </div>
+      <p id="appConfirmMessage" class="text-xs text-slate-600 leading-relaxed">¿Estás seguro de realizar esta acción?</p>
+      <div class="flex justify-end gap-2 pt-2 text-xs">
+        <button id="btnConfirmCancel" onclick="closeAppConfirmModal(false)" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 font-bold text-slate-700 transition-colors">Cancelar</button>
+        <button id="btnConfirmAction" onclick="closeAppConfirmModal(true)" class="px-4 py-2 rounded-xl bg-tcg-dark hover:bg-slate-800 text-white font-bold transition-all shadow-sm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. PANTALLA DE ACCESO / LOGIN POKÉDEX (PIN PRIVADO) -->
+  <div id="authGateOverlay" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 blueprint-grid overflow-y-auto">
+    <div id="authBox" class="relative w-full max-w-md bg-white border-2 border-tcg-dark rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
       <div class="crop-corner crop-tl"></div>
       <div class="crop-corner crop-tr"></div>
       <div class="crop-corner crop-bl"></div>
@@ -153,8 +183,8 @@
         </div>
 
         <div class="text-right font-mono text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-          SISTEMA OS 10.4<br>
-          <span class="text-tcg-crimson">ACCESO PRIVADO</span>
+          SISTEMA OS 10.5<br>
+          <span class="text-tcg-crimson">TERMINAL PERSONAL</span>
         </div>
       </div>
 
@@ -166,7 +196,7 @@
           </p>
         </div>
 
-        <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <form id="authForm" onsubmit="event.preventDefault(); handleAuthSubmit(event);" class="space-y-4">
           <div>
             <label for="authTrainerName" class="block text-[11px] font-mono font-bold uppercase text-slate-600 mb-1">
               Nombre Completo del Entrenador:
@@ -183,9 +213,9 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label for="authAccessCode" class="block text-[11px] font-mono font-bold uppercase text-slate-600">
-                Código de Seguridad (PIN):
+                Código de Seguridad:
               </label>
-              <span class="text-[10px] font-mono text-slate-400">PIN PRIVADO: 641957</span>
+              <span class="text-[10px] font-mono text-slate-400">PIN DE 6 DÍGITOS</span>
             </div>
             <input 
               type="password" 
@@ -205,7 +235,7 @@
           <button 
             type="submit" 
             id="btnAuthLogin"
-            class="w-full py-3 rounded-xl bg-tcg-dark hover:bg-slate-800 active:scale-98 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+            class="w-full py-3 rounded-xl bg-tcg-dark hover:bg-slate-800 active:scale-95 text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
           >
             <span>Iniciar Pokédex</span>
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -214,14 +244,14 @@
 
         <div class="border-t border-dashed border-slate-200 pt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
           <span>PROTOCOLO ENCRIPTADO</span>
-          <span>PIN: <strong class="text-slate-600">641957</strong></span>
+          <span>TERMINAL PRIVADA</span>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 2. SECUENCIA DE ARRANQUE / BOOT POKÉDEX -->
-  <div id="pokedexBootScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 hidden">
+  <div id="pokedexBootScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 hidden pointer-events-none">
     <div class="max-w-md w-full space-y-6 text-center">
       <div class="flex items-center justify-center gap-4">
         <div id="bootLightBlue" class="w-14 h-14 rounded-full border-4 border-slate-800 bg-sky-400 shadow-[0_0_25px_#38BDF8] animate-pulse"></div>
@@ -234,13 +264,13 @@
 
       <div class="space-y-2">
         <div class="text-[11px] font-mono text-emerald-400 tracking-widest uppercase">
-          [ AUTENTICACIÓN BIOMÉTRICA CONCEDIDA ]
+          [ AUTENTICACIÓN CONCEDIDA ]
         </div>
         <h3 id="bootGreetingText" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight font-mono">
           INICIANDO POKÉDEX...
         </h3>
         <p id="bootLogMessage" class="text-xs font-mono text-slate-400 h-6">
-          Calibrando terminal técnica...
+          Calibrando terminal multilingüe...
         </p>
       </div>
 
@@ -250,7 +280,7 @@
 
       <div class="flex justify-between text-[10px] font-mono text-slate-500">
         <span id="bootProgressPercent">5%</span>
-        <span>REGISTRO: #001 A #1025</span>
+        <span>REGISTRO NACIONAL: #001 A #1025</span>
       </div>
     </div>
   </div>
@@ -269,8 +299,8 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-extrabold tracking-tight text-tcg-dark text-sm sm:text-base">POKÉDEX<span class="text-tcg-crimson">.TCG</span></span>
-              <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border border-slate-300 text-slate-500 bg-slate-50">TCGDEX + ARCHIVADOR</span>
+              <span class="font-extrabold tracking-tight text-tcg-dark text-sm sm:base">POKÉDEX<span class="text-tcg-crimson">.TCG</span></span>
+              <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border border-slate-300 text-slate-500 bg-slate-50">ES • EN • 日本語</span>
             </div>
             <p id="navTrainerBadge" class="text-[10px] text-slate-400 font-mono tracking-tight hidden sm:block">ARCHIVO PERSONAL • INICIA SESIÓN</p>
           </div>
@@ -284,7 +314,7 @@
         </a>
         <a href="#scanner" class="hover:text-tcg-crimson transition-colors flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-tcg-crimson inline-block animate-ping"></span>
-          Escáner OCR
+          Lente Multilingüe (ES/EN/JA)
         </a>
         <a href="#tracker" class="hover:text-tcg-dark transition-colors">Catálogo 1–1025</a>
         <a href="#valuator" class="hover:text-tcg-dark transition-colors">Calculadora Bulk</a>
@@ -302,14 +332,14 @@
           <span class="hidden sm:inline">Exportar</span> Faltantes
         </button>
 
-        <button onclick="logoutSession()" title="Cerrar sesión" class="p-1.5 rounded-lg border border-slate-300 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+        <button onclick="requestLogoutSession()" title="Cerrar sesión" class="p-1.5 rounded-lg border border-slate-300 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- 4. HERO SECTION CON LA FRASE EXACTA SOLICITADA -->
+  <!-- 4. HERO SECTION CON FRASE EXACTA SOLICITADA -->
   <section id="hero" class="relative overflow-hidden border-b border-tcg-border py-12 md:py-20 bg-gradient-to-b from-white via-white to-slate-50/50">
     <canvas id="heroCanvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-70"></canvas>
 
@@ -319,11 +349,10 @@
         <div class="lg:col-span-7 space-y-6">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-tcg-wire bg-white/80 backdrop-blur-sm text-[11px] font-mono text-slate-600 shadow-sm">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>GESTIÓN FÍSICA • MAPEO DE PÁGINAS Y BOLSILLOS • TCGDEX EN VIVO</span>
+            <span>GESTIÓN FÍSICA • MAPEO DE PÁGINAS Y BOLSILLOS • DETECCIÓN ES / EN / JA</span>
           </div>
 
           <div class="space-y-3">
-            <!-- FRASE EXACTA: ¿Te gustan los pokemon ? HAZTE CON TODOS -->
             <h1 class="tracking-tight leading-[1.08]">
               <span class="block font-display font-light italic text-slate-700 text-3xl sm:text-5xl lg:text-6xl tracking-normal">
                 ¿Te gustan los pokemon ?
@@ -333,7 +362,7 @@
               </span>
             </h1>
             <p class="text-sm sm:text-base text-slate-600 max-w-2xl font-normal leading-relaxed pt-1">
-              Tu archivo personal de la Pokédex Nacional física: simula las páginas reales de tu archivador de 9 o 12 bolsillos, escanea cartas físicas con OCR local, cotiza valores en Cardmarket EUR y controla tu colección comenzando desde 0,00 €.
+              Tu archivo personal de la Pokédex Nacional física: simula las páginas reales de tu archivador de 9 o 12 bolsillos, escanea cartas en español, inglés o japonés (Katakana/Kanji) con OCR local, cotiza valores en Cardmarket EUR y controla tu colección comenzando desde 0,00 €.
             </p>
           </div>
 
@@ -345,10 +374,10 @@
 
             <a href="#scanner" class="px-5 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-tcg-dark font-bold tracking-wide flex items-center gap-2 shadow-sm transition-all active:scale-95">
               <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              Escáner OCR Cámara
+              Lente OCR Multilingüe
             </a>
 
-            <button onclick="resetCollectionPrompt()" class="px-3.5 py-3 rounded-xl border border-dashed border-slate-300 text-slate-500 hover:text-tcg-dark hover:border-slate-400 font-medium transition-colors">
+            <button onclick="requestResetCollection()" class="px-3.5 py-3 rounded-xl border border-dashed border-slate-300 text-slate-500 hover:text-tcg-dark hover:border-slate-400 font-medium transition-colors">
               🔄 Reiniciar Álbum a 0
             </button>
           </div>
@@ -373,7 +402,7 @@
               <div class="text-xs font-mono text-slate-500 font-semibold uppercase">VALOR EN MERCADO CARDMARKET</div>
               <div id="heroTotalValueHero" class="text-2xl font-black text-emerald-600 font-mono tracking-tight">0,00 €</div>
               <p class="text-[10px] font-mono text-slate-400">
-                Calculado en tiempo real con las cotizaciones de tus cartas conseguidas.
+                Cotizaciones calculadas en EUR (ES/EN) con aviso de importación (JA).
               </p>
             </div>
           </div>
@@ -413,7 +442,7 @@
 
             <div class="border-t border-tcg-wire pt-2 space-y-1.5">
               <div class="flex items-center justify-between">
-                <h3 class="font-extrabold text-xs tracking-wider uppercase text-tcg-dark">PIKACHU</h3>
+                <h3 class="font-extrabold text-xs tracking-wider uppercase text-tcg-dark">PIKACHU • ピカチュウ</h3>
                 <span class="text-[7.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-slate-800 text-slate-900 bg-white font-mono">ELÉCTRICO</span>
               </div>
               
@@ -498,10 +527,7 @@
               <span id="binderLeftSheetLabel" class="text-slate-400 font-semibold">Hoja 1 • Delante</span>
             </div>
 
-            <!-- Rejilla de Bolsillos de la Página Izquierda -->
-            <div id="binderLeftGrid" class="grid gap-2.5">
-              <!-- Render dinámico según 9 o 12 bolsillos -->
-            </div>
+            <div id="binderLeftGrid" class="grid gap-2.5"></div>
           </div>
 
           <!-- LOMO CENTRAL CON ANILLAS METÁLICAS -->
@@ -522,10 +548,7 @@
               </span>
             </div>
 
-            <!-- Rejilla de Bolsillos de la Página Derecha -->
-            <div id="binderRightGrid" class="grid gap-2.5">
-              <!-- Render dinámico según 9 o 12 bolsillos -->
-            </div>
+            <div id="binderRightGrid" class="grid gap-2.5"></div>
           </div>
 
         </div>
@@ -534,21 +557,47 @@
     </div>
   </section>
 
-  <!-- 6. ESCÁNER REAL CON CÁMARA, OCR Y TCGDEX -->
+  <!-- 6. ESCÁNER REAL CON CÁMARA, OCR Y TCGDEX (ES / EN / JA) -->
   <section id="scanner" class="py-16 border-b border-tcg-border bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       
-      <div class="max-w-2xl mb-8 space-y-2">
+      <div class="max-w-3xl mb-8 space-y-2">
         <div class="inline-flex items-center gap-2 text-xs font-mono font-bold text-tcg-crimson uppercase tracking-wider">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-          RECONOCIMIENTO ÓPTICO REAL (TESSERACT.JS) & PRECIOS TCGDEX EN ESPAÑOL
+          RECONOCIMIENTO ÓPTICO MULTILINGÜE (TESSERACT.JS) & TCGDEX (ES / EN / JA)
         </div>
         <h2 class="text-2xl sm:text-4xl font-extrabold text-tcg-dark tracking-tight">
-          Lente Óptica: Escaneo Real con Cámara y Precios Cardmarket
+          Lente Óptica: Escaneo en Español, Inglés y Japonés
         </h2>
         <p class="text-slate-600 text-sm">
-          Apunta con la cámara a la carta o sube una foto. El motor local de OCR lee el texto y la numeración en tu propio equipo y consulta la API oficial en español de TCGdex para traerte la foto física y sus cotizaciones en euros.
+          Apunta a la carta o sube una fotografía. Elige el idioma de tu carta para activar el motor adecuado (incluyendo <strong>Katakana y Kanji</strong> para cartas de Japón) y consultar automáticamente la base de datos oficial con sus fotos físicas y precios.
         </p>
+      </div>
+
+      <!-- Barra de Selector de Idioma de Escaneo y Búsqueda -->
+      <div class="mb-6 p-3 rounded-2xl bg-slate-100 border border-slate-300 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-700 uppercase flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-tcg-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+            Idioma de la Carta:
+          </span>
+          <div class="inline-flex rounded-xl bg-white border border-slate-300 p-1 shadow-sm">
+            <button onclick="setScanLanguage('es')" id="btnLangES" class="px-3 py-1 rounded-lg font-bold transition-all bg-tcg-dark text-white shadow-sm">
+              🇪🇸 Español (ES)
+            </button>
+            <button onclick="setScanLanguage('en')" id="btnLangEN" class="px-3 py-1 rounded-lg font-bold transition-all text-slate-600 hover:text-tcg-dark">
+              🇬🇧 English (EN)
+            </button>
+            <button onclick="setScanLanguage('ja')" id="btnLangJA" class="px-3 py-1 rounded-lg font-bold transition-all text-slate-600 hover:text-tcg-dark">
+              🇯🇵 日本語 (JA)
+            </button>
+          </div>
+        </div>
+
+        <div id="langIndicatorBadge" class="text-[11px] font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>OCR: Español + English • Catálogo: TCGdex ES</span>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -565,7 +614,7 @@
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               </div>
               <p class="text-slate-300 font-mono text-xs font-bold">VISOR ÓPTICO DESCONECTADO</p>
-              <p class="text-slate-500 text-[11px] max-w-xs mx-auto">Enciende la cámara web o selecciona una imagen de tu disco para iniciar el OCR local.</p>
+              <p class="text-slate-500 text-[11px] max-w-xs mx-auto">Enciende la cámara o selecciona una imagen de tu disco para iniciar el OCR local.</p>
             </div>
 
             <!-- HUD Overlay del Escáner -->
@@ -575,30 +624,49 @@
                   <span id="hudLiveDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
                   <span id="hudStatusText">STANDBY / SIN SEÑAL</span>
                 </div>
-                <span>OCR: TESSERACT.JS v5 (LOCAL)</span>
+                <span id="hudModelBadge">OCR: SPA + ENG (LOCAL)</span>
               </div>
 
               <!-- Retícula de 63x88mm -->
-              <div class="relative mx-auto my-auto w-[170px] sm:w-[210px] aspect-[63/88] border border-dashed border-emerald-400/70 rounded-lg flex items-center justify-center">
+              <div id="scannerReticle" class="relative mx-auto my-auto w-[170px] sm:w-[210px] aspect-[63/88] border-2 border-dashed border-emerald-400/80 rounded-xl flex items-center justify-center transition-all">
                 <div class="crop-corner crop-tl" style="border-color: #34D399;"></div>
                 <div class="crop-corner crop-tr" style="border-color: #34D399;"></div>
                 <div class="crop-corner crop-bl" style="border-color: #34D399;"></div>
                 <div class="crop-corner crop-br" style="border-color: #34D399;"></div>
+
+                <div class="absolute top-2 inset-x-2 h-7 border border-emerald-400/50 bg-emerald-500/10 rounded flex items-center justify-center pointer-events-none">
+                  <span id="reticleZone1Label" class="text-[7.5px] font-mono text-emerald-300 font-bold tracking-wider">ZONA 1: NOMBRE DEL POKÉMON</span>
+                </div>
 
                 <div class="w-4 h-4 relative">
                   <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-emerald-400/80"></div>
                   <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] bg-emerald-400/80"></div>
                 </div>
 
+                <div class="absolute bottom-2 inset-x-2 h-6 border border-sky-400/60 bg-sky-500/10 rounded flex items-center justify-center pointer-events-none">
+                  <span class="text-[7px] font-mono text-sky-300 font-bold tracking-wider">ZONA 2: NÚMERO CARTA (EJ: 199/165)</span>
+                </div>
+
                 <div id="laserBeam" class="scanner-laser hidden absolute inset-x-2 h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_12px_#F43F5E]"></div>
-                <span class="absolute bottom-2 text-[8px] font-mono text-emerald-300 tracking-widest bg-slate-950/85 px-2 py-0.5 rounded">ALINEAR CARTA TCG AQUÍ</span>
               </div>
 
               <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 bg-slate-950/60 px-2 py-1 rounded">
-                <span>MOTOR: <strong class="text-slate-200">Tesseract Client-Side</strong></span>
-                <span>API: <strong class="text-slate-200">tcgdex.net/v2/es</strong></span>
+                <span>ENFOQUE: <strong class="text-slate-200">Doble Zona Cabecera + Pie</strong></span>
+                <span id="hudEndpointLabel">API: <strong class="text-slate-200">tcgdex.net/v2/es</strong></span>
               </div>
             </div>
+          </div>
+
+          <!-- Sugerencias detectadas -->
+          <div id="scannerSuggestionsContainer" class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1.5 font-mono text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                Coincidencias detectadas en el escaneo:
+              </span>
+              <span id="scannerConfidenceBadge" class="text-[10px] bg-emerald-200 text-emerald-950 px-2 py-0.5 rounded font-bold">100% Precisión</span>
+            </div>
+            <div id="scannerCandidateChips" class="flex flex-wrap gap-1.5 pt-1"></div>
           </div>
 
           <!-- Barra de Progreso del OCR -->
@@ -638,272 +706,287 @@
             </label>
           </div>
 
-          <!-- Buscador Manual de Respaldo conectado a TCGdex -->
+          <!-- Buscador Manual Multilingüe conectado a TCGdex -->
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
             <div class="flex items-center justify-between">
-              <label for="manualSearchInput" class="text-xs font-mono font-bold text-slate-700 uppercase">
-                🔍 Buscador Manual en Vivo (TCGdex API en Español)
+              <label for="manualSearchInput" class="text-xs font-mono font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                <span>🔍 Buscador Multilingüe por Nombre y Nº</span>
+                <span id="searchLangBadge" class="text-[9px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-700">ES</span>
               </label>
-              <span class="text-[10px] text-slate-400 font-mono">Por si la cámara tiene reflejos</span>
+              <span class="text-[10px] text-slate-400 font-mono">Español, Inglés o Katakana/Kanji</span>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-col sm:flex-row gap-2">
               <input 
                 type="text" 
                 id="manualSearchInput" 
-                placeholder="Escribe el nombre: Charizard, Pikachu, Pecharunt..." 
+                placeholder="Nombre: Charizard, リザードン, Pikachu..." 
                 class="flex-1 bg-white border border-slate-300 focus:border-tcg-dark rounded-xl px-3.5 py-2 text-xs font-mono font-medium outline-none"
                 onkeydown="if(event.key === 'Enter') triggerManualSearch()"
               >
-              <button onclick="triggerManualSearch()" class="px-4 py-2 rounded-xl bg-tcg-dark hover:bg-slate-800 text-white font-mono text-xs font-bold transition-all">
-                Buscar
+              <input 
+                type="text" 
+                id="manualCardNumberInput" 
+                placeholder="Nº (ej: 199 o 199/165)" 
+                class="w-full sm:w-44 bg-white border border-slate-300 focus:border-tcg-dark rounded-xl px-3 py-2 text-xs font-mono font-bold text-tcg-dark outline-none text-center"
+                onkeydown="if(event.key === 'Enter') triggerManualSearch()"
+              >
+              <button onclick="triggerManualSearch()" class="px-4 py-2 rounded-xl bg-tcg-dark hover:bg-slate-800 text-white font-mono text-xs font-bold transition-all shrink-0">
+                Buscar Carta
               </button>
             </div>
 
-            <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-mono">
+            <!-- Pruebas rápidas dinámicas adaptadas al idioma -->
+            <div id="quickSearchChips" class="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-mono">
               <span class="text-slate-400">Pruebas rápidas:</span>
-              <button onclick="queryTCGdexCard('Charizard')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700">Charizard</button>
-              <button onclick="queryTCGdexCard('Pikachu')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700">Pikachu</button>
-              <button onclick="queryTCGdexCard('Mew')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700">Mew</button>
-              <button onclick="queryTCGdexCard('Pecharunt')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700">Pecharunt</button>
+              <button onclick="queryTCGdexCard('Charizard', '199')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700">Charizard 199/165 (ES)</button>
+              <button onclick="queryTCGdexCard('Umbreon', '215')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700">Umbreon VMAX (EN)</button>
+              <button onclick="queryTCGdexCard('リザードン', '006')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700 font-jp">リザードン 151 (JA)</button>
+              <button onclick="queryTCGdexCard('ピカチュウ', '025')" class="px-2 py-0.5 rounded bg-white border border-slate-200 hover:border-slate-400 text-slate-700 font-jp">ピカチュウ (JA)</button>
             </div>
+          </div>
+
+          <!-- Selector de Versiones y Variantes encontradas -->
+          <div id="cardVariantsSelector" class="hidden p-4 rounded-xl bg-slate-100 border border-slate-300 space-y-2 font-mono">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-2">
+                <svg class="w-4 h-4 text-tcg-crimson" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                Versiones detectadas (<span id="variantsCount">0</span>):
+              </span>
+              <span class="text-[10px] text-slate-500">Toca la tuya para seleccionarla</span>
+            </div>
+            <div id="variantsCarousel" class="flex gap-2.5 overflow-x-auto pb-2 pt-1 scroll-smooth"></div>
           </div>
         </div>
 
-        <!-- Panel de Resultados de Carta Escaneada -->
-        <div class="lg:col-span-5">
-          <div id="scanResultCard" class="bg-white border-2 border-tcg-dark rounded-2xl p-6 shadow-xl relative space-y-5">
-            <div class="crop-corner crop-tl"></div>
-            <div class="crop-corner crop-tr"></div>
-            <div class="crop-corner crop-bl"></div>
-            <div class="crop-corner crop-br"></div>
-
-            <div class="flex items-start justify-between border-b border-tcg-wire pb-3">
-              <div class="space-y-0.5">
-                <span id="resPokedexNum" class="font-mono text-xs font-bold text-tcg-crimson">#006 POKÉDEX NACIONAL</span>
-                <h3 id="resCardName" class="text-xl font-extrabold text-tcg-dark uppercase tracking-tight">Charizard</h3>
-                <p id="resCardSubtitle" class="text-xs text-slate-500 font-mono">Escarlata y Púrpura: 151 (MEW)</p>
-              </div>
-              <span id="resRarityBadge" class="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-1 rounded bg-slate-900 text-white">
-                Ultra Rara (ex)
+        <!-- Ficha de Información de la Carta Detectada -->
+        <div class="lg:col-span-5 bg-slate-50 border-2 border-tcg-dark rounded-2xl p-5 shadow-lg space-y-4">
+          <div class="flex justify-between items-start border-b border-tcg-wire pb-3">
+            <div>
+              <span id="resPokedexNum" class="text-xs font-mono font-bold text-tcg-crimson uppercase">#006 POKÉDEX NACIONAL</span>
+              <h3 id="resCardName" class="text-xl font-extrabold text-tcg-dark uppercase">Charizard</h3>
+              <p id="resCardSubtitle" class="text-xs text-slate-500 font-mono">Escarlata y Púrpura 151 • #199/165</p>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <span id="resCardLangBadge" class="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-900 text-white">
+                ESPAÑOL
+              </span>
+              <span id="resRarityBadge" class="text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-800">
+                Ilustración Especial Rara (SAR)
               </span>
             </div>
-
-            <div class="flex justify-center items-center py-2 bg-slate-50 rounded-xl border border-slate-200 relative min-h-[180px]">
-              <div id="cardImgLoader" class="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-xs hidden z-10">
-                <div class="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-              <img 
-                id="resCardImage" 
-                src="https://assets.tcgdex.net/es/sv/sv03.5/006/high.webp" 
-                alt="Carta TCGdex" 
-                class="h-48 object-contain rounded-md shadow-md transition-transform hover:scale-105 duration-300"
-                onerror="this.src='https://placehold.co/245x342/ffffff/0f172a?text=Foto+No+Disponible'"
-              >
-            </div>
-
-            <!-- Precios reales en EUR (Cardmarket) -->
-            <div class="grid grid-cols-2 gap-3 font-mono text-xs">
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Tendencia Cardmarket</span>
-                <span id="resMarketPrice" class="text-lg font-extrabold text-emerald-600 font-mono">118.50 €</span>
-                <span id="resPriceSource" class="text-[9px] text-slate-400 block mt-0.5">Mercado Europeo (EUR)</span>
-              </div>
-
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Mínimo / Media 30d</span>
-                <span id="resPriceRange" class="text-sm font-bold text-tcg-dark font-mono mt-1 block">95.00 € / 130.00 €</span>
-                <span class="text-[9px] text-slate-400 block mt-0.5">Actualizado en vivo</span>
-              </div>
-            </div>
-
-            <!-- Selector de Rareza Física en Posesión -->
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs space-y-1.5">
-              <label class="block text-[10px] font-bold uppercase text-slate-500">Rareza de tu carta física:</label>
-              <select id="selPhysicalRarityVariant" class="w-full bg-white border border-slate-300 rounded-lg p-2 font-bold text-tcg-dark outline-none">
-                <option value="Común">Común (Common)</option>
-                <option value="Infrecuente">Infrecuente (Uncommon)</option>
-                <option value="Rara Holo">Rara Holo</option>
-                <option value="Holo Inversa">Holo Inversa (Reverse Holo)</option>
-                <option value="Ultra Rara (ex / GX / V)" selected>Ultra Rara (ex / GX / V)</option>
-                <option value="Ilustración Rara (AR / IR)">Ilustración Rara (AR / IR)</option>
-                <option value="Ilustración Especial Rara (SAR / SIR)">Ilustración Especial Rara (SAR / SIR)</option>
-                <option value="Hiper Rara / Dorada (HR / Gold)">Hiper Rara / Dorada (HR / Gold)</option>
-              </select>
-            </div>
-
-            <!-- Coordenadas físicas automáticas -->
-            <div class="space-y-2 border-t border-b border-dashed border-slate-200 py-3 font-mono text-xs">
-              <div class="flex justify-between">
-                <span class="text-slate-400">Expansión / Set:</span>
-                <span id="resSetDetails" class="font-bold text-tcg-dark">Escarlata y Púrpura: 151</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Ubicación Falsa / Física:</span>
-                <span id="resNationalSlot" class="font-bold text-tcg-crimson">Hoja 1 • Delante • Bolsillo 6</span>
-              </div>
-            </div>
-
-            <!-- Botón de Sincronización con el Álbum -->
-            <div class="space-y-2 pt-1 font-mono">
-              <button id="btnAddToAlbum" onclick="addScannedCardToCollection()" class="w-full py-3 rounded-xl bg-tcg-dark hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-98">
-                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                <span id="btnAddToAlbumText">Marcar #006 como Conseguido</span>
-              </button>
-
-              <div class="flex items-center gap-2">
-                <a id="lnkCardmarket" href="https://www.cardmarket.com/es/Pokemon/Products/Singles?searchString=Charizard" target="_blank" rel="noopener noreferrer" class="flex-1 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-center text-xs font-semibold transition-colors flex items-center justify-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                  Ver en Cardmarket
-                </a>
-
-                <button onclick="openExportModalWithSpecificId(currentLoadedId)" class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs transition-colors" title="Exportar para tarjeta placeholder">
-                  🖨️ Ficha
-                </button>
-              </div>
-            </div>
-
           </div>
-        </div>
 
-      </div>
-
-    </div>
-  </section>
-
-  <!-- 7. ÁLBUM NACIONAL COMPLETO (1 AL 1025) CON FILTROS AVANZADOS -->
-  <section id="tracker" class="py-16 border-b border-tcg-border bg-slate-50/60">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-      
-      <div class="space-y-4">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div class="inline-flex items-center gap-2 text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
-              ÁLBUM FÍSICO EXPANDIBLE (1 CARTA POR ESPECIE)
+          <!-- Imagen de la Carta Oficial (TCGdex) -->
+          <div class="relative aspect-[63/88] max-w-[220px] mx-auto bg-white rounded-xl border border-slate-300 shadow-md p-2 flex items-center justify-center overflow-hidden">
+            <div id="cardImgLoader" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10 hidden">
+              <span class="w-6 h-6 border-2 border-tcg-crimson border-t-transparent rounded-full animate-spin"></span>
             </div>
-            <h2 class="text-2xl sm:text-4xl font-extrabold text-tcg-dark tracking-tight">
-              Registro Nacional 1 – 1025
-            </h2>
-            <p class="text-slate-600 text-sm">
-              Filtra por los 18 tipos elementales, expansiones de TCG o rarezas físicas oficiales.
+            <img 
+              id="resCardImage" 
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png" 
+              alt="Carta física detectada" 
+              class="max-h-full max-w-full object-contain filter drop-shadow"
+            >
+          </div>
+
+          <!-- Precios Oficiales de Cardmarket en EUR o Nota de Importación -->
+          <div class="p-3.5 rounded-xl bg-white border border-slate-200 space-y-2">
+            <div class="flex justify-between items-center text-xs font-mono">
+              <span class="text-slate-500">Cotización Mercado EUR:</span>
+              <span id="resMarketPrice" class="text-base font-black text-emerald-600">118,50 €</span>
+            </div>
+            <div class="flex justify-between items-center text-[11px] font-mono text-slate-400">
+              <span id="resPriceMetricLabel">Rango 30 días:</span>
+              <span id="resPriceRange">95,00 € (Mín) / 125,00 € (Media)</span>
+            </div>
+            <div class="flex justify-between items-center text-[11px] font-mono text-slate-400 pt-1 border-t border-slate-100">
+              <span>Expansión detectada:</span>
+              <span id="resSetDetails" class="text-slate-700 font-bold">151 (MEW)</span>
+            </div>
+          </div>
+
+          <!-- Ubicación física en el archivador -->
+          <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200 text-xs font-mono space-y-1">
+            <span class="text-[10px] uppercase font-bold text-rose-800">📍 UBICACIÓN EN TU ARCHIVADOR FÍSICO:</span>
+            <p id="resNationalSlot" class="text-tcg-dark font-bold text-xs">
+              Hoja 1 • Delante • Bolsillo 6 (Fila 2, Col 3)
             </p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
-            <button onclick="setFilterStatus('all')" id="filter-status-all" class="px-3 py-1.5 rounded-lg bg-tcg-dark text-white font-bold border border-tcg-dark">Todos</button>
-            <button onclick="setFilterStatus('collected')" id="filter-status-collected" class="px-3 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">Tengo (0)</button>
-            <button onclick="setFilterStatus('missing')" id="filter-status-missing" class="px-3 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">Faltantes (1025)</button>
+          <!-- Selector de Rareza Física que posees -->
+          <div class="space-y-1 font-mono text-xs">
+            <label for="selPhysicalRarityVariant" class="text-slate-500 font-bold text-[10px] uppercase">
+              Variante física que tienes:
+            </label>
+            <select id="selPhysicalRarityVariant" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none">
+              <option value="Común">Común</option>
+              <option value="Infrecuente">Infrecuente</option>
+              <option value="Rara Holo">Rara Holo</option>
+              <option value="Holo Inversa">Holo Inversa</option>
+              <option value="Ultra Rara (ex / GX / V)">Ultra Rara (ex / GX / V)</option>
+              <option value="Ilustración Rara (AR / IR)">Ilustración Rara (AR / IR)</option>
+              <option value="Ilustración Especial Rara (SAR / SIR)">Ilustración Especial Rara (SAR / SIR)</option>
+              <option value="Hiper Rara / Dorada (HR / Gold)">Hiper Rara / Dorada (HR / Gold)</option>
+            </select>
+          </div>
+
+          <div class="space-y-2 pt-1 font-mono text-xs">
+            <button 
+              id="btnAddToCollection" 
+              onclick="addScannedCardToCollection()"
+              class="w-full py-3 rounded-xl bg-tcg-dark hover:bg-slate-800 active:scale-98 text-white font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all"
+            >
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span id="btnAddToAlbumText">Marcar en Álbum (+118.50 €)</span>
+            </button>
+
+            <a 
+              id="lnkCardmarket" 
+              href="https://www.cardmarket.com/es/Pokemon" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="w-full py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span>Ver en Cardmarket</span>
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
           </div>
         </div>
 
-        <!-- Barra de Búsqueda y Multi-Filtros -->
-        <div class="bg-white border border-tcg-border rounded-2xl p-4 shadow-sm space-y-3">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-            
-            <!-- Buscador por nombre o número -->
-            <div class="relative md:col-span-2">
-              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              <input 
-                type="text" 
-                id="trackerSearchInput" 
-                placeholder="Buscar por nombre o número (#025, Charizard, 143)..."
-                oninput="handleTrackerSearch()"
-                class="w-full bg-slate-50 border border-slate-300 focus:border-tcg-dark rounded-xl pl-10 pr-4 py-2 text-xs font-mono font-medium outline-none transition-all placeholder:text-slate-400"
-              >
-            </div>
+      </div>
+    </div>
+  </section>
 
-            <!-- Filtro de Generación -->
-            <div>
-              <select id="trackerGenSelect" onchange="handleTrackerGenChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 outline-none">
-                <option value="all">Generación: Todas</option>
-                <option value="1">Gen 1: Kanto (1-151)</option>
-                <option value="2">Gen 2: Johto (152-251)</option>
-                <option value="3">Gen 3: Hoenn (252-386)</option>
-                <option value="4">Gen 4: Sinnoh (387-493)</option>
-                <option value="5">Gen 5: Teselia (494-649)</option>
-                <option value="6">Gen 6: Kalos (650-721)</option>
-                <option value="7">Gen 7: Alola (722-809)</option>
-                <option value="8">Gen 8: Galar (810-905)</option>
-                <option value="9">Gen 9: Paldea (906-1025)</option>
-              </select>
-            </div>
-
-            <!-- Filtro por 18 Tipos Elementales -->
-            <div>
-              <select id="trackerTypeSelect" onchange="handleTrackerTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-800 outline-none">
-                <option value="all">Tipo: Todos (18 Tipos)</option>
-                <option value="Acero">Acero</option>
-                <option value="Agua">Agua</option>
-                <option value="Bicho">Bicho</option>
-                <option value="Dragón">Dragón</option>
-                <option value="Eléctrico">Eléctrico</option>
-                <option value="Fantasma">Fantasma</option>
-                <option value="Fuego">Fuego</option>
-                <option value="Hada">Hada</option>
-                <option value="Hielo">Hielo</option>
-                <option value="Lucha">Lucha</option>
-                <option value="Normal">Normal</option>
-                <option value="Planta">Planta</option>
-                <option value="Psíquico">Psíquico</option>
-                <option value="Roca">Roca</option>
-                <option value="Siniestro">Siniestro</option>
-                <option value="Tierra">Tierra</option>
-                <option value="Veneno">Veneno</option>
-                <option value="Volador">Volador</option>
-              </select>
-            </div>
-
+  <!-- 7. CATÁLOGO COMPLETO 1-1025 CON FILTROS AVANZADOS -->
+  <section id="tracker" class="py-16 border-b border-tcg-border bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 text-xs font-mono font-bold text-tcg-crimson uppercase tracking-wider">
+            <span>🗂️ BASE DE DATOS NACIONAL (1 AL 1025)</span>
           </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-tcg-dark tracking-tight">
+            Catálogo Pokédex Completo
+          </h2>
+          <p class="text-slate-600 text-sm">
+            Explora las 1025 especies organizadas por número oficial, aplica filtros combinados y haz clic en cualquier Pokémon para añadirlo o retirarlo de tu colección física.
+          </p>
+        </div>
 
-          <!-- Filtros de Rarezas TCG y Expansiones -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-slate-100 font-mono text-xs">
-            <!-- Filtro de Rarezas Físicas Reales -->
-            <div class="flex items-center gap-2">
-              <span class="text-slate-400 font-semibold text-[11px] uppercase">Rareza TCG:</span>
-              <select id="trackerRaritySelect" onchange="handleTrackerRarityChange()" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-700 outline-none">
-                <option value="all">Todas las rarezas</option>
-                <option value="Común">Común</option>
-                <option value="Infrecuente">Infrecuente</option>
-                <option value="Rara Holo">Rara Holo</option>
-                <option value="Holo Inversa">Holo Inversa</option>
-                <option value="Ultra Rara (ex / GX / V)">Ultra Rara (ex / GX / V)</option>
-                <option value="Ilustración Rara (AR / IR)">Ilustración Rara (AR / IR)</option>
-                <option value="Ilustración Especial Rara (SAR / SIR)">Ilustración Especial Rara (SAR / SIR)</option>
-                <option value="Hiper Rara / Dorada (HR / Gold)">Hiper Rara / Dorada</option>
-              </select>
-            </div>
-
-            <!-- Filtro de Colección / Set -->
-            <div class="flex items-center gap-2">
-              <span class="text-slate-400 font-semibold text-[11px] uppercase">Expansión:</span>
-              <select id="trackerSetSelect" onchange="handleTrackerSetChange()" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 font-bold text-slate-700 outline-none">
-                <option value="all">Todas las expansiones</option>
-                <option value="151">Escarlata y Púrpura: 151 (MEW)</option>
-                <option value="Chispas Fulgurantes">Chispas Fulgurantes (Surging Sparks)</option>
-                <option value="Fuerzas Temporales">Fuerzas Temporales (Temporal Forces)</option>
-                <option value="Evoluciones en Paldea">Evoluciones en Paldea (Paldea Evolved)</option>
-                <option value="Fábulas Sombrías">Fábulas Sombrías (Shrouded Fable)</option>
-                <option value="Mascarada Crepuscular">Mascarada Crepuscular (Twilight Masquerade)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between text-xs font-mono text-slate-500 pt-1">
-            <span id="trackerCountSummary">Mostrando 1 - 36 de 1025</span>
-            <button onclick="clearAllTrackerFilters()" class="text-tcg-crimson hover:underline font-semibold">Limpiar filtros</button>
-          </div>
+        <div class="flex items-center gap-2 font-mono text-xs">
+          <button id="filter-status-all" onclick="setFilterStatus('all')" class="px-3 py-1.5 rounded-lg bg-tcg-dark text-white font-bold border border-tcg-dark">
+            Todos (1025)
+          </button>
+          <button id="filter-status-collected" onclick="setFilterStatus('collected')" class="px-3 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            Tengo (0)
+          </button>
+          <button id="filter-status-missing" onclick="setFilterStatus('missing')" class="px-3 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            Faltantes (1025)
+          </button>
         </div>
       </div>
 
-      <!-- Cuadrícula de Cartas 63x88mm del Álbum -->
-      <div id="trackerCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        <!-- Render dinámico -->
+      <!-- Barra de Filtros Múltiples -->
+      <div class="bg-white border border-tcg-border rounded-2xl p-4 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 font-mono text-xs">
+        
+        <div>
+          <label for="trackerSearchInput" class="block font-bold text-slate-600 uppercase text-[10px] mb-1">Buscar por Nombre / #</label>
+          <input 
+            type="text" 
+            id="trackerSearchInput" 
+            placeholder="Pikachu, 25, Mew..." 
+            oninput="handleTrackerSearch()"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-tcg-dark outline-none focus:border-tcg-dark"
+          >
+        </div>
+
+        <div>
+          <label for="trackerGenSelect" class="block font-bold text-slate-600 uppercase text-[10px] mb-1">Generación / Región</label>
+          <select id="trackerGenSelect" onchange="handleTrackerGenChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none">
+            <option value="all">Todas las Regiones</option>
+            <option value="1">Gen 1: Kanto (#001-#151)</option>
+            <option value="2">Gen 2: Johto (#152-#251)</option>
+            <option value="3">Gen 3: Hoenn (#252-#386)</option>
+            <option value="4">Gen 4: Sinnoh (#387-#493)</option>
+            <option value="5">Gen 5: Teselia (#494-#649)</option>
+            <option value="6">Gen 6: Kalos (#650-#721)</option>
+            <option value="7">Gen 7: Alola (#722-#809)</option>
+            <option value="8">Gen 8: Galar (#810-#905)</option>
+            <option value="9">Gen 9: Paldea (#906-#1025)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="trackerTypeSelect" class="block font-bold text-slate-600 uppercase text-[10px] mb-1">Tipo Elemental</label>
+          <select id="trackerTypeSelect" onchange="handleTrackerTypeChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none">
+            <option value="all">Todos los Tipos</option>
+            <option value="Normal">Normal</option>
+            <option value="Fuego">Fuego</option>
+            <option value="Agua">Agua</option>
+            <option value="Planta">Planta</option>
+            <option value="Eléctrico">Eléctrico</option>
+            <option value="Hielo">Hielo</option>
+            <option value="Lucha">Lucha</option>
+            <option value="Veneno">Veneno</option>
+            <option value="Tierra">Tierra</option>
+            <option value="Volador">Volador</option>
+            <option value="Psíquico">Psíquico</option>
+            <option value="Bicho">Bicho</option>
+            <option value="Roca">Roca</option>
+            <option value="Fantasma">Fantasma</option>
+            <option value="Dragón">Dragón</option>
+            <option value="Siniestro">Siniestro</option>
+            <option value="Acero">Acero</option>
+            <option value="Hada">Hada</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="trackerRaritySelect" class="block font-bold text-slate-600 uppercase text-[10px] mb-1">Rareza Física</label>
+          <select id="trackerRaritySelect" onchange="handleTrackerRarityChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none">
+            <option value="all">Todas las Rarezas</option>
+            <option value="Común">Común</option>
+            <option value="Infrecuente">Infrecuente</option>
+            <option value="Rara Holo">Rara Holo</option>
+            <option value="Holo Inversa">Holo Inversa</option>
+            <option value="Ultra Rara (ex / GX / V)">Ultra Rara (ex / GX / V)</option>
+            <option value="Ilustración Rara (AR / IR)">Ilustración Rara (AR / IR)</option>
+            <option value="Ilustración Especial Rara (SAR / SIR)">Ilustración Especial Rara (SAR / SIR)</option>
+            <option value="Hiper Rara / Dorada (HR / Gold)">Hiper Rara / Dorada</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="trackerSetSelect" class="block font-bold text-slate-600 uppercase text-[10px] mb-1">Expansión / Colección</label>
+          <select id="trackerSetSelect" onchange="handleTrackerSetChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none">
+            <option value="all">Todas las Colecciones</option>
+            <option value="151">Escarlata y Púrpura 151 (MEW)</option>
+            <option value="surging">Chispas Fulgurantes (SSP)</option>
+            <option value="temporal">Fuerzas Temporales (TEF)</option>
+            <option value="paldea">Evoluciones en Paldea (PAL)</option>
+            <option value="jp-sv2a">Pokémon Card 151 Japón (SV2a)</option>
+          </select>
+        </div>
+
       </div>
+
+      <!-- Cuadrícula de Pokémon (36 por página) -->
+      <div id="trackerCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 min-h-[400px]"></div>
 
       <!-- Paginación -->
-      <div class="flex items-center justify-center gap-2 pt-4 font-mono text-xs">
-        <button onclick="changePage(-1)" id="btnPrevPage" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">← Anterior</button>
-        <span id="trackerPaginationInfo" class="px-4 py-2 font-bold text-tcg-dark">Página 1 de 29</span>
-        <button onclick="changePage(1)" id="btnNextPage" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed">Siguiente →</button>
+      <div class="flex flex-wrap items-center justify-between gap-4 font-mono text-xs pt-2">
+        <span id="trackerCountSummary" class="text-slate-500">Mostrando 1 - 36 de 1025</span>
+        
+        <div class="flex items-center gap-2">
+          <button id="btnPrevPage" onclick="changePage(-1)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold disabled:opacity-40">
+            ← Anterior
+          </button>
+          <span id="trackerPaginationInfo" class="text-slate-600 font-bold px-2">Página 1 de 29</span>
+          <button id="btnNextPage" onclick="changePage(1)" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold disabled:opacity-40">
+            Siguiente →
+          </button>
+        </div>
       </div>
 
     </div>
@@ -912,193 +995,202 @@
   <!-- 8. CALCULADORA DE BULK & LOTES -->
   <section id="valuator" class="py-16 border-b border-tcg-border bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
-      <div class="max-w-2xl mb-10 space-y-2">
-        <div class="inline-flex items-center gap-2 text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">
-          FINANZAS & LOTES ECONÓMICOS
+      
+      <div class="max-w-2xl mb-8 space-y-2">
+        <div class="inline-flex items-center gap-2 text-xs font-mono font-bold text-tcg-crimson uppercase tracking-wider">
+          <span>💶 HERRAMIENTA DE COMPRA Y MERCADO</span>
         </div>
         <h2 class="text-2xl sm:text-4xl font-extrabold text-tcg-dark tracking-tight">
-          Calculadora de Valor de Bulk & Lotes para el Álbum
+          Calculadora de Lotes y Bulk
         </h2>
         <p class="text-slate-600 text-sm">
-          Completa los 1025 Pokémon gastando lo mínimo: calcula si una oferta de segunda mano en Wallapop o Cardmarket es rentable frente a comprar cartas sueltas.
+          ¿Encontraste un lote en Wallapop, Cardmarket o importación de Japón? Introduce las cantidades y el precio ofertado para averiguar si merece la pena frente a comprar cartas sueltas.
         </p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div class="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-5">
-          <h3 class="font-bold text-sm text-tcg-dark font-mono uppercase tracking-wider border-b border-slate-200 pb-2">
-            Desglose de Cartas del Lote
-          </h3>
-
+        
+        <div class="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4 font-mono text-xs">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
-              <div class="flex justify-between items-center text-xs font-mono">
-                <span class="font-bold text-slate-700">Comunes / Unc.</span>
-                <span class="text-slate-400">~0.08 €/u</span>
-              </div>
-              <input type="number" id="calcBulkCommons" value="250" min="0" oninput="calculateBulkTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-tcg-dark outline-none">
-              <span class="text-[10px] text-slate-400 block font-mono">Relleno base para especies</span>
+            <div>
+              <label for="calcBulkCommons" class="block font-bold text-slate-600 mb-1">Comunes/Infrecuentes</label>
+              <input type="number" id="calcBulkCommons" min="0" value="50" oninput="calculateBulkTotal()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-tcg-dark outline-none">
+              <span class="text-[10px] text-slate-400">~0.08 € / ud</span>
             </div>
 
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
-              <div class="flex justify-between items-center text-xs font-mono">
-                <span class="font-bold text-slate-700">Holo / Reverse</span>
-                <span class="text-slate-400">~0.25 €/u</span>
-              </div>
-              <input type="number" id="calcBulkHolos" value="45" min="0" oninput="calculateBulkTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-tcg-dark outline-none">
-              <span class="text-[10px] text-slate-400 block font-mono">Brillantes o inversas</span>
+            <div>
+              <label for="calcBulkHolos" class="block font-bold text-slate-600 mb-1">Holos y Reverse</label>
+              <input type="number" id="calcBulkHolos" min="0" value="15" oninput="calculateBulkTotal()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-tcg-dark outline-none">
+              <span class="text-[10px] text-slate-400">~0.25 € / ud</span>
             </div>
 
-            <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
-              <div class="flex justify-between items-center text-xs font-mono">
-                <span class="font-bold text-slate-700">Ultra / Ilustración</span>
-                <span class="text-slate-400">~4.50 €/u</span>
-              </div>
-              <input type="number" id="calcBulkUltra" value="6" min="0" oninput="calculateBulkTotal()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-tcg-dark outline-none">
-              <span class="text-[10px] text-slate-400 block font-mono">Full Arts, ex, AR</span>
+            <div>
+              <label for="calcBulkUltra" class="block font-bold text-slate-600 mb-1">Ultra Raras (ex/V)</label>
+              <input type="number" id="calcBulkUltra" min="0" value="2" oninput="calculateBulkTotal()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-tcg-dark outline-none">
+              <span class="text-[10px] text-slate-400">~4.50 € / ud</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
             <div>
-              <label for="calcShipping" class="block text-xs font-mono font-bold text-slate-500 mb-1">Gasto de Envío Estimado (Cardmarket/Correos):</label>
-              <div class="relative">
-                <input type="number" id="calcShipping" value="5.80" step="0.5" min="0" oninput="calculateBulkTotal()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-tcg-dark outline-none">
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400">€</span>
-              </div>
+              <label for="calcShipping" class="block font-bold text-slate-600 mb-1">Gastos de Envío Estimados (€)</label>
+              <input type="number" id="calcShipping" min="0" step="0.5" value="4.50" oninput="calculateBulkTotal()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-tcg-dark outline-none">
             </div>
 
             <div>
-              <label for="calcOfferedPrice" class="block text-xs font-mono font-bold text-slate-500 mb-1">Precio Ofertado por el Vendedor:</label>
-              <div class="relative">
-                <input type="number" id="calcOfferedPrice" value="55.00" step="1" min="0" oninput="calculateBulkTotal()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-mono font-bold text-tcg-dark outline-none">
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-slate-400">€</span>
-              </div>
+              <label for="calcOfferedPrice" class="block font-bold text-slate-600 mb-1">Precio Ofertado por Vendedor (€)</label>
+              <input type="number" id="calcOfferedPrice" min="0" step="0.5" value="18.00" oninput="calculateBulkTotal()" class="w-full bg-white border-2 border-tcg-dark rounded-xl px-3 py-2 text-sm font-black text-tcg-crimson outline-none">
             </div>
           </div>
         </div>
 
-        <div class="lg:col-span-5 bg-white border-2 border-tcg-dark rounded-2xl p-6 shadow-xl relative space-y-5">
-          <div class="crop-corner crop-tl"></div>
-          <div class="crop-corner crop-tr"></div>
-          <div class="crop-corner crop-bl"></div>
-          <div class="crop-corner crop-br"></div>
-
-          <div class="border-b border-tcg-wire pb-3">
-            <span class="text-[10px] font-mono uppercase font-bold text-slate-400">ANÁLISIS DE ADQUISICIÓN</span>
-            <h4 class="text-lg font-extrabold text-tcg-dark">Veredicto de Valoración</h4>
-          </div>
-
-          <div class="space-y-3 font-mono text-xs">
-            <div class="flex justify-between items-center text-slate-500">
-              <span>Valor individual estimado:</span>
-              <span id="calcSubtotalCards" class="font-bold text-tcg-dark">58.25 €</span>
+        <div class="lg:col-span-5 bg-white border-2 border-tcg-dark rounded-2xl p-6 shadow-md space-y-4 font-mono">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Veredicto del Analizador</h3>
+          
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center text-slate-600">
+              <span>Valor individual cartas:</span>
+              <span id="calcSubtotalCards" class="font-bold text-tcg-dark">16.75 €</span>
             </div>
-            <div class="flex justify-between items-center text-slate-500">
-              <span>Coste de envío:</span>
-              <span id="calcTotalShipping" class="font-bold text-tcg-dark">5.80 €</span>
+            <div class="flex justify-between items-center text-slate-600">
+              <span>Coste envío:</span>
+              <span id="calcTotalShipping" class="font-bold text-tcg-dark">4.50 €</span>
             </div>
             <div class="flex justify-between items-center text-sm pt-2 border-t border-slate-200">
-              <span class="font-bold text-tcg-dark">Valor Real Estimado:</span>
-              <span id="calcGrandTotal" class="text-xl font-extrabold text-emerald-600">64.05 €</span>
+              <span class="font-bold text-tcg-dark">Total valor mercado:</span>
+              <span id="calcGrandTotal" class="font-black text-emerald-600 text-base">21.25 €</span>
             </div>
           </div>
 
-          <div id="calcVerdictBanner" class="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-mono space-y-1">
-            <div class="flex items-center gap-1.5 font-bold">
-              <span>✅ OFERTA RECOMENDADA</span>
-            </div>
-            <p id="calcVerdictExplanation" class="text-[11px] text-emerald-800">
-              Estás ahorrando aproximadamente 9.05 € respecto al valor individual de las cartas en Cardmarket.
+          <div id="calcVerdictBanner" class="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs space-y-1">
+            <span class="font-bold flex items-center gap-1.5">✅ OFERTA RECOMENDADA</span>
+            <p id="calcVerdictExplanation" class="text-[11px] leading-relaxed">
+              Estás ahorrando aproximadamente 3.25 € respecto a comprar estas cartas por separado.
             </p>
           </div>
         </div>
+
       </div>
     </div>
   </section>
 
-  <!-- 9. MODAL DE EXPORTACIÓN DIRECTA PARA PLACEHOLDERS -->
-  <div id="exportModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
-    <div class="bg-white border-2 border-tcg-dark rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
-      <div class="crop-corner crop-tl"></div>
-      <div class="crop-corner crop-tr"></div>
-      <div class="crop-corner crop-bl"></div>
-      <div class="crop-corner crop-br"></div>
-
-      <div class="flex items-start justify-between border-b border-tcg-wire pb-3">
+  <!-- MODAL EXPORTAR NÚMEROS FALTANTES -->
+  <div id="exportModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="relative w-full max-w-lg bg-white border-2 border-tcg-dark rounded-2xl p-6 shadow-2xl space-y-4 font-mono">
+      <div class="flex justify-between items-start border-b border-slate-200 pb-3">
         <div>
-          <span class="text-[10px] font-mono uppercase font-bold text-tcg-crimson">EXPORTACIÓN DIRECTA</span>
-          <h3 class="text-lg font-extrabold text-tcg-dark">Lista de Especies Faltantes</h3>
+          <h3 class="text-base font-extrabold text-tcg-dark">Exportar Lista de Faltantes</h3>
+          <p id="exportModalTotalCount" class="text-xs text-slate-500">Total: 1025 especies faltantes</p>
         </div>
-        <button onclick="closeExportModal()" class="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center text-slate-500 hover:text-tcg-dark hover:bg-slate-50">✕</button>
+        <button onclick="closeExportModal()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700">✕</button>
       </div>
 
-      <p class="text-xs text-slate-600">
-        Pega esta lista de números separados por comas directamente en tu <strong>Generador de Tarjetas de Sustitución (63×88 mm)</strong> para imprimir tus huecos libres:
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Copia esta cadena de números para pegarla directamente en tu generador de tarjetas de sustitución (63×88 mm):
       </p>
 
-      <div class="space-y-2">
-        <textarea id="exportNumbersTextarea" readonly rows="4" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-mono font-bold text-tcg-dark outline-none select-all"></textarea>
-        <div class="flex justify-between items-center text-[11px] font-mono text-slate-500">
-          <span id="exportModalTotalCount">Total: 1025 faltantes</span>
-          <button onclick="copyMissingNumbers()" id="btnCopyExport" class="px-3 py-1.5 rounded-lg bg-tcg-dark hover:bg-slate-800 text-white font-bold transition-all active:scale-95">
-            Copiar al portapapeles
-          </button>
-        </div>
-      </div>
+      <textarea id="exportNumbersTextarea" rows="6" readonly class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-mono text-slate-800 font-bold focus:outline-none select-all"></textarea>
 
-      <div class="pt-2 border-t border-slate-200 flex justify-end gap-2">
-        <button onclick="closeExportModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50">Cerrar</button>
+      <div class="flex justify-end gap-2 pt-2 text-xs">
+        <button onclick="closeExportModal()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 font-bold text-slate-700">Cerrar</button>
+        <button id="btnCopyExport" onclick="copyMissingNumbers()" class="px-5 py-2 rounded-xl bg-tcg-dark hover:bg-slate-800 text-white font-bold flex items-center gap-2">
+          <span>Copiar al portapapeles</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-white border-t border-tcg-border py-10 mt-auto font-mono text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-        <div class="w-5 h-5 rounded border border-tcg-dark flex items-center justify-center font-bold text-[9px] text-tcg-dark">PK</div>
-        <span>POKÉDEX TCG SYSTEM • 1025 ESPECIES • TCGDEX & TESSERACT</span>
+  <!-- MODAL DE VISUALIZACIÓN DE CARTA EN ARCHIVADOR -->
+  <div id="cardInspectModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="relative w-full max-w-md bg-white border-2 border-tcg-dark rounded-2xl p-6 shadow-2xl space-y-4 font-mono">
+      <div class="flex justify-between items-start border-b border-slate-200 pb-3">
+        <div>
+          <span id="inspectModalNum" class="text-xs font-bold text-tcg-crimson">#000 POKÉDEX</span>
+          <h3 id="inspectModalName" class="text-lg font-extrabold text-tcg-dark uppercase">Nombre</h3>
+          <p id="inspectModalSubtitle" class="text-xs text-slate-500">Expansión y número</p>
+        </div>
+        <button onclick="closeCardInspectModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700">✕</button>
       </div>
-      <div>Compatible con fundas estándar 63 × 88 mm</div>
+
+      <div class="aspect-[63/88] max-h-72 mx-auto bg-slate-50 rounded-xl border border-slate-300 p-2 shadow-inner flex items-center justify-center overflow-hidden">
+        <img id="inspectModalImg" src="" alt="Carta física" class="max-h-full max-w-full object-contain filter drop-shadow">
+      </div>
+
+      <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1.5">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Ubicación en Archivador:</span>
+          <span id="inspectModalSlot" class="font-bold text-tcg-dark text-right text-[11px]">Hoja 1 • Bolsillo 1</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Rareza / Acabado:</span>
+          <span id="inspectModalRarity" class="font-bold text-slate-700">Común</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Valor Mercado:</span>
+          <span id="inspectModalPrice" class="font-black text-emerald-600">0,00 €</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 text-xs">
+        <button onclick="retakeCardScanFromInspect()" class="flex-1 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 font-bold text-slate-700 flex items-center justify-center gap-1.5">
+          <span>Cambiar Versión / Escanear</span>
+        </button>
+        <button onclick="removeCardFromInspectModal()" class="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold transition-all">
+          Retirar del Álbum
+        </button>
+      </div>
     </div>
-  </footer>
+  </div>
 
   <script>
-    /* 1. SEGURIDAD, AUTENTICACIÓN Y ANTI-COPIA */
     const AUTH_PIN = "641957";
     const TOTAL_POKEMON = 1025;
-    let trainerName = localStorage.getItem('pokedex_tcg_trainer_name') || 'Entrenador';
-    let collectionData = JSON.parse(localStorage.getItem('pokedex_tcg_collection_data') || '{}');
-    let binderFormat = 9; // 9 o 12 bolsillos por página
-    let currentSpreadPage = 1; // Página izquierda actual del álbum
+    let trainerName = "Entrenador";
+    let binderFormat = 9; // 9 o 12
+    let currentSpreadPage = 1;
+    let currentScanLanguage = "es"; // 'es', 'en', 'ja'
     let POKEMON_DB = [];
+    let collectionData = JSON.parse(localStorage.getItem('pokedex_tcg_collection_data') || '{}');
 
-    // Bloqueo de Clic Derecho (Context Menu)
-    function handleContextMenu(e) {
-      e.preventDefault();
-      showSecurityToast("Clic derecho deshabilitado para proteger tu archivo.");
-      return false;
+    // Reemplazo no bloqueante para confirm()
+    let confirmModalCallback = null;
+    function openAppConfirmModal(title, msg, onConfirm) {
+      document.getElementById('appConfirmTitle').textContent = title;
+      document.getElementById('appConfirmMessage').textContent = msg;
+      confirmModalCallback = onConfirm;
+      document.getElementById('appConfirmModal').classList.remove('hidden');
     }
 
-    // Bloqueo de atajos de teclado para desarrollador y copia (F12, Ctrl+U, Ctrl+Shift+I, etc.)
-    window.addEventListener('keydown', (e) => {
+    function closeAppConfirmModal(result) {
+      document.getElementById('appConfirmModal').classList.add('hidden');
+      if (result && typeof confirmModalCallback === 'function') {
+        confirmModalCallback();
+      }
+      confirmModalCallback = null;
+    }
+
+    function handleContextMenu(e) {
+      e.preventDefault();
+      showSecurityToast("Menú contextual deshabilitado por protección de archivo.");
+    }
+
+    document.addEventListener('keydown', (e) => {
       if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.key === 'u') ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) ||
-        (e.ctrlKey && (e.key === 'c' || e.key === 'C') && window.getSelection().toString().length > 0)
+        e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
+        (e.ctrlKey && (e.key === 'u' || e.key === 'U'))
       ) {
         e.preventDefault();
-        showSecurityToast("Acción de inspección o copia bloqueada por protocolo de seguridad.");
-        return false;
+        showSecurityToast("Herramientas de inspección restringidas.");
       }
     });
 
     let toastTimer = null;
     function showSecurityToast(msg) {
       const toast = document.getElementById('securityToast');
-      document.getElementById('securityToastMsg').textContent = msg;
+      const text = document.getElementById('securityToastMsg');
+      if (!toast) return;
+      text.textContent = msg;
       toast.classList.remove('translate-y-20', 'opacity-0');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
@@ -1106,32 +1198,30 @@
       }, 2500);
     }
 
-    /* GESTIÓN DE SESIÓN ROBUSTA (COMPATIBLE CON file:// Y HTTPS) */
     function checkInitialAuth() {
-      const isAuth = localStorage.getItem('pokedex_tcg_auth_session') === 'active';
-      const savedTrainer = localStorage.getItem('pokedex_tcg_trainer_name');
-      const gate = document.getElementById('authGateOverlay');
-      
-      if (isAuth && savedTrainer) {
-        trainerName = savedTrainer;
-        gate.classList.add('hidden');
-        document.getElementById('navTrainerBadge').textContent = `ARCHIVO PERSONAL • ${trainerName.toUpperCase()}`;
+      const session = localStorage.getItem('pokedex_tcg_auth_session');
+      const storedName = localStorage.getItem('pokedex_tcg_trainer_name');
+      const authOverlay = document.getElementById('authGateOverlay');
+      if (session === 'active' && storedName) {
+        trainerName = storedName;
+        if (authOverlay) authOverlay.classList.add('hidden');
+        const badge = document.getElementById('navTrainerBadge');
+        if (badge) badge.textContent = `ARCHIVO PERSONAL • ${trainerName.toUpperCase()}`;
       } else {
-        gate.classList.remove('hidden');
+        if (authOverlay) authOverlay.classList.remove('hidden');
       }
     }
 
     function handleAuthSubmit(e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       const nameInput = document.getElementById('authTrainerName').value.trim();
       const codeInput = document.getElementById('authAccessCode').value.trim();
       const errBox = document.getElementById('authErrorMessage');
       const authBox = document.getElementById('authBox');
 
-      // Validación limpia y directa que funciona 100% en local y en la nube
       if (codeInput !== AUTH_PIN) {
         errBox.classList.remove('hidden');
-        document.getElementById('authErrorText').textContent = "Código PIN de seguridad incorrecto. Introduce 641957.";
+        document.getElementById('authErrorText').textContent = "Código de seguridad incorrecto. Inténtalo de nuevo.";
         authBox.classList.remove('shake-anim');
         void authBox.offsetWidth;
         authBox.classList.add('shake-anim');
@@ -1153,14 +1243,52 @@
       triggerPokedexBootSequence(trainerName);
     }
 
-    function logoutSession() {
-      if (confirm("¿Deseas cerrar la sesión de tu Pokédex personal?")) {
-        localStorage.removeItem('pokedex_tcg_auth_session');
-        location.reload();
-      }
+    function requestLogoutSession() {
+      openAppConfirmModal(
+        "Cerrar Sesión",
+        "¿Deseas cerrar la sesión de tu Pokédex personal y bloquear el acceso?",
+        () => {
+          localStorage.removeItem('pokedex_tcg_auth_session');
+          location.reload();
+        }
+      );
     }
 
-    /* 2. BASE DE DATOS POKÉDEX NACIONAL (1 AL 1025) */
+    function triggerPokedexBootSequence(userName) {
+      const bootScreen = document.getElementById('pokedexBootScreen');
+      const progressBar = document.getElementById('bootProgressBar');
+      const percentLabel = document.getElementById('bootProgressPercent');
+      const logMessage = document.getElementById('bootLogMessage');
+      const greeting = document.getElementById('bootGreetingText');
+
+      if (!bootScreen) return;
+      bootScreen.classList.remove('hidden');
+      greeting.textContent = `INICIANDO TERMINAL DE ${userName.toUpperCase()}...`;
+
+      const steps = [
+        { pct: 20, msg: "Cargando protocolo biométrico multilingüe..." },
+        { pct: 45, msg: "Sincronizando 1025 especies (ES / EN / JA)..." },
+        { pct: 75, msg: "Calibrando coordenadas físicas de archivador..." },
+        { pct: 100, msg: "¡Sistema operativo listo para coleccionar!" }
+      ];
+
+      let idx = 0;
+      const interval = setInterval(() => {
+        if (idx < steps.length) {
+          progressBar.style.width = `${steps[idx].pct}%`;
+          percentLabel.textContent = `${steps[idx].pct}%`;
+          logMessage.textContent = steps[idx].msg;
+          idx++;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            bootScreen.classList.add('hidden');
+            document.getElementById('navTrainerBadge').textContent = `ARCHIVO PERSONAL • ${userName.toUpperCase()}`;
+          }, 450);
+        }
+      }, 300);
+    }
+
     const POPULAR_NAMES = {
       1: "Bulbasaur", 2: "Ivysaur", 3: "Venusaur", 4: "Charmander", 5: "Charmeleon", 6: "Charizard",
       7: "Squirtle", 8: "Wartortle", 9: "Blastoise", 10: "Caterpie", 11: "Metapod", 12: "Butterfree",
@@ -1177,6 +1305,16 @@
       700: "Sylveon", 716: "Xerneas", 717: "Yveltal", 778: "Mimikyu", 800: "Necrozma", 888: "Zacian",
       889: "Zamazenta", 906: "Sprigatito", 909: "Fuecoco", 912: "Quaxly", 1004: "Chi-Yu", 1008: "Miraidon",
       1007: "Koraidon", 1025: "Pecharunt"
+    };
+
+    // Diccionario japonés de nombres (Katakana) para las especies más icónicas
+    const JAPANESE_NAMES = {
+      1: "フシギダネ", 2: "フシギソウ", 3: "フシギバナ", 4: "ヒトカゲ", 5: "リザード", 6: "リザードン",
+      7: "ゼニガメ", 8: "カメール", 9: "カメックス", 25: "ピカチュウ", 26: "ライチュウ", 94: "ゲンガー",
+      130: "ギャラドス", 133: "イーブイ", 143: "カビゴン", 150: "ミュウツー", 151: "ミュウ",
+      196: "エーフィ", 197: "ブラッキー", 249: "ルギア", 250: "ホウオウ", 384: "レックウザ",
+      448: "ルカリオ", 493: "アルセウス", 658: "ゲッコウガ", 778: "ミミッキュ", 1008: "ミライドン",
+      1007: "コライドン", 1025: "モモワロウ"
     };
 
     const GENERATION_RANGES = [
@@ -1209,13 +1347,11 @@
       for (let i = 1; i <= TOTAL_POKEMON; i++) {
         const genInfo = getGenerationForId(i);
         const name = POPULAR_NAMES[i] || `Pokémon #${String(i).padStart(3, '0')}`;
-        
-        // Asignación consistente de tipos primario y secundario
+        const jpName = JAPANESE_NAMES[i] || "";
         const typeIndex = (i * 7) % ELEMENTAL_TYPES.length;
         const types = [ELEMENTAL_TYPES[typeIndex]];
         if (i % 3 === 0) {
-          const secIndex = (typeIndex + 5) % ELEMENTAL_TYPES.length;
-          types.push(ELEMENTAL_TYPES[secIndex]);
+          types.push(ELEMENTAL_TYPES[(typeIndex + 5) % ELEMENTAL_TYPES.length]);
         }
 
         let defaultRarity = "Común";
@@ -1230,6 +1366,7 @@
         POKEMON_DB.push({
           id: i,
           name,
+          jpName,
           gen: genInfo.gen,
           region: genInfo.region,
           types,
@@ -1238,51 +1375,13 @@
       }
     }
 
-    /* 3. SECUENCIA DE ARRANQUE POKÉDEX */
-    function triggerPokedexBootSequence(userName) {
-      const bootScreen = document.getElementById('pokedexBootScreen');
-      const progressBar = document.getElementById('bootProgressBar');
-      const percentLabel = document.getElementById('bootProgressPercent');
-      const logMessage = document.getElementById('bootLogMessage');
-      const greeting = document.getElementById('bootGreetingText');
-
-      if (!bootScreen) return;
-      bootScreen.classList.remove('hidden');
-      greeting.textContent = `INICIANDO TERMINAL DE ${userName.toUpperCase()}...`;
-
-      const steps = [
-        { pct: 15, msg: "Cargando protocolo biométrico local..." },
-        { pct: 40, msg: "Sincronizando 1025 especies de Pokédex Nacional..." },
-        { pct: 75, msg: "Calibrando coordenadas físicas de archivador..." },
-        { pct: 100, msg: "¡Sistema operativo listo para coleccionar!" }
-      ];
-
-      let idx = 0;
-      const interval = setInterval(() => {
-        if (idx < steps.length) {
-          progressBar.style.width = `${steps[idx].pct}%`;
-          percentLabel.textContent = `${steps[idx].pct}%`;
-          logMessage.textContent = steps[idx].msg;
-          idx++;
-        } else {
-          clearInterval(interval);
-          setTimeout(() => {
-            bootScreen.classList.add('hidden');
-            document.getElementById('navTrainerBadge').textContent = `ARCHIVO PERSONAL • ${userName.toUpperCase()}`;
-          }, 450);
-        }
-      }, 350);
-    }
-
-    /* 4. GESTIÓN FÍSICA Y COORDENADAS DEL ARCHIVADOR (9 vs 12 BOLSILLOS) */
     function calculatePhysicalCoordinates(id) {
-      const pocketsPerPage = binderFormat; // 9 o 12
-      const pocketsPerSheet = pocketsPerPage * 2; // Delante y detrás
+      const pocketsPerPage = binderFormat;
+      const pocketsPerSheet = pocketsPerPage * 2;
       const sheet = Math.ceil(id / pocketsPerSheet);
       const positionInSheet = (id - 1) % pocketsPerSheet;
       const isFront = positionInSheet < pocketsPerPage;
       const pocketInFace = (positionInSheet % pocketsPerPage) + 1;
-      
       const cols = binderFormat === 9 ? 3 : 4;
       const row = Math.ceil(pocketInFace / cols);
       const col = ((pocketInFace - 1) % cols) + 1;
@@ -1310,7 +1409,6 @@
         btn9.className = "px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all";
       }
 
-      // Actualizar vista y coordenadas en la carta activa
       renderBinderSpread();
       if (currentLoadedId) {
         const coords = calculatePhysicalCoordinates(currentLoadedId);
@@ -1345,11 +1443,9 @@
 
       const leftStart = ((currentSpreadPage - 1) * pocketsPerPage) + 1;
       const leftEnd = Math.min(leftStart + pocketsPerPage - 1, TOTAL_POKEMON);
-
       const rightStart = leftEnd + 1;
       const rightEnd = Math.min(rightStart + pocketsPerPage - 1, TOTAL_POKEMON);
 
-      // Etiquetas y títulos
       const leftSheetNum = Math.ceil(leftStart / (pocketsPerPage * 2));
       const rightSheetNum = Math.ceil(rightStart / (pocketsPerPage * 2));
       const leftIsFront = ((leftStart - 1) % (pocketsPerPage * 2)) < pocketsPerPage;
@@ -1363,19 +1459,16 @@
       const jumpInput = document.getElementById('inpJumpSheet');
       if (jumpInput) jumpInput.value = leftSheetNum;
 
-      // Render Página Izquierda
       leftGrid.innerHTML = '';
       for (let id = leftStart; id < leftStart + pocketsPerPage; id++) {
         leftGrid.appendChild(createBinderPocketElement(id));
       }
 
-      // Render Página Derecha
       rightGrid.innerHTML = '';
       for (let id = rightStart; id < rightStart + pocketsPerPage; id++) {
         rightGrid.appendChild(createBinderPocketElement(id));
       }
 
-      // Control de botones
       document.getElementById('btnBinderPrevSpread').disabled = currentSpreadPage <= 1;
       document.getElementById('btnBinderNextSpread').disabled = rightStart > TOTAL_POKEMON;
     }
@@ -1383,55 +1476,92 @@
     function createBinderPocketElement(id) {
       const pocketEl = document.createElement('div');
       if (id > TOTAL_POKEMON) {
-        pocketEl.className = "aspect-[63/88] rounded-xl border border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center p-2 text-slate-300";
+        pocketEl.className = "aspect-[63/88] rounded-xl border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center p-2 text-slate-300";
         pocketEl.innerHTML = `<span class="text-[9px] font-mono">Ranura Vacía</span>`;
         return pocketEl;
       }
 
-      const isCollected = collectionData[id] && collectionData[id].collected;
+      const cardData = collectionData[id];
+      const isCollected = cardData && cardData.collected;
       const poke = POKEMON_DB[id - 1] || { name: `Pokémon #${id}`, gen: 1 };
-      const cardVal = isCollected && collectionData[id].price ? Number(collectionData[id].price).toFixed(2) + ' €' : '';
+      const cardVal = isCollected && cardData.price ? Number(cardData.price).toFixed(2) + ' €' : '';
+      const hasRealCardImage = isCollected && cardData.cardImage;
 
-      pocketEl.className = `group aspect-[63/88] rounded-xl border-2 transition-all p-2 flex flex-col justify-between cursor-pointer select-none relative overflow-hidden ${
+      pocketEl.className = `group aspect-[63/88] rounded-xl border-2 transition-all p-1.5 flex flex-col justify-between cursor-pointer select-none relative overflow-hidden ${
         isCollected 
-          ? 'bg-white border-tcg-dark shadow-sm hover:border-tcg-crimson' 
+          ? 'bg-white border-tcg-dark shadow-md hover:border-tcg-crimson hover:shadow-lg' 
           : 'bg-slate-50 border-slate-200 hover:border-slate-400'
       }`;
-      pocketEl.onclick = () => togglePokemonInAlbum(id);
 
-      pocketEl.innerHTML = `
-        <div class="flex items-center justify-between text-[9px] font-mono">
-          <span class="font-bold ${isCollected ? 'text-tcg-crimson' : 'text-slate-400'}">#${String(id).padStart(3, '0')}</span>
-          <span class="w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] font-bold ${
-            isCollected ? 'border-tcg-dark bg-tcg-dark text-white' : 'border-slate-300 bg-white text-transparent'
-          }">✓</span>
-        </div>
+      pocketEl.onclick = () => {
+        if (isCollected && hasRealCardImage) {
+          openCardInspectModal(id);
+        } else {
+          togglePokemonInAlbum(id);
+        }
+      };
 
-        <div class="my-auto flex items-center justify-center relative py-1">
-          <img 
-            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png" 
-            alt="${poke.name}"
-            loading="lazy"
-            class="w-12 h-12 pixelated-render transition-transform group-hover:scale-110 ${
-              isCollected ? '' : 'filter brightness-0 opacity-20'
-            }"
-            onerror="this.style.display='none'"
-          >
-        </div>
+      if (hasRealCardImage) {
+        pocketEl.innerHTML = `
+          <div class="relative w-full h-full flex flex-col justify-between z-10 p-1 pointer-events-none">
+            <div class="flex items-center justify-between">
+              <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-950/85 text-white backdrop-blur-sm border border-slate-700/60 shadow-sm">
+                #${String(id).padStart(3, '0')}
+              </span>
+              <span class="text-[7.5px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-600/90 text-white shadow-sm flex items-center gap-1 backdrop-blur-sm">
+                <span>✓</span> ${cardVal}
+              </span>
+            </div>
 
-        <div class="border-t border-slate-100 pt-1 text-center">
-          <p class="text-[9px] font-bold text-tcg-dark uppercase truncate">${poke.name}</p>
-          <div class="flex justify-between items-center text-[7.5px] font-mono text-slate-400 pt-0.5">
-            <span>GEN ${poke.gen}</span>
-            <span class="${cardVal ? 'text-emerald-600 font-bold' : ''}">${cardVal || 'Faltante'}</span>
+            <div class="flex items-center justify-between text-[7px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-950/80 text-slate-100 backdrop-blur-sm border border-slate-700/50 truncate">
+              <span class="truncate">${cardData.setName || poke.name}</span>
+              <span class="text-emerald-400 font-bold ml-1 shrink-0">${cardData.cardNumber || ''}</span>
+            </div>
           </div>
-        </div>
-      `;
+
+          <img 
+            src="${cardData.cardImage}" 
+            alt="${cardData.name || poke.name}"
+            loading="lazy"
+            class="absolute inset-0 w-full h-full object-contain p-1 rounded-lg z-0 transition-transform duration-200 group-hover:scale-105"
+            onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png'"
+          >
+          <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20"></div>
+        `;
+      } else {
+        pocketEl.innerHTML = `
+          <div class="flex items-center justify-between text-[9px] font-mono">
+            <span class="font-bold ${isCollected ? 'text-tcg-crimson' : 'text-slate-400'}">#${String(id).padStart(3, '0')}</span>
+            <span class="w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] font-bold ${
+              isCollected ? 'border-tcg-dark bg-tcg-dark text-white' : 'border-slate-300 bg-white text-transparent'
+            }">✓</span>
+          </div>
+
+          <div class="my-auto flex items-center justify-center relative py-1">
+            <img 
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png" 
+              alt="${poke.name}"
+              loading="lazy"
+              class="w-12 h-12 pixelated-render transition-transform group-hover:scale-110 ${
+                isCollected ? '' : 'filter brightness-0 opacity-20'
+              }"
+              onerror="this.style.display='none'"
+            >
+          </div>
+
+          <div class="border-t border-slate-100 pt-1 text-center">
+            <p class="text-[9px] font-bold text-tcg-dark uppercase truncate">${poke.name}</p>
+            <div class="flex justify-between items-center text-[7.5px] font-mono text-slate-400 pt-0.5">
+              <span>GEN ${poke.gen}</span>
+              <span class="${cardVal ? 'text-emerald-600 font-bold' : ''}">${cardVal || 'Faltante'}</span>
+            </div>
+          </div>
+        `;
+      }
 
       return pocketEl;
     }
 
-    /* 5. CÁLCULO DE VALOR DE COLECCIÓN (ESTRICTAMENTE 0,00 € DE BASE) */
     const ESTIMATED_SPECIES_VALUES = {
       6: 118.50, 25: 24.50, 94: 38.00, 130: 16.50, 150: 45.00,
       151: 52.00, 249: 48.00, 250: 42.00, 384: 65.00, 448: 12.00,
@@ -1440,6 +1570,11 @@
 
     let currentLoadedPrice = 118.50;
     let currentLoadedId = 6;
+    let currentLoadedCardImg = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png';
+    let currentLoadedSetName = 'Escarlata y Púrpura 151';
+    let currentLoadedCardNum = '199/165';
+    let currentLoadedName = 'Charizard';
+    let currentLoadedLang = 'es';
 
     function calculateTotalCollectionValue() {
       let total = 0;
@@ -1471,36 +1606,88 @@
       localStorage.setItem('pokedex_tcg_collection_data', JSON.stringify(collectionData));
     }
 
-    function togglePokemonInAlbum(id, explicitPrice = null, explicitRarity = null) {
-      if (collectionData[id] && collectionData[id].collected) {
+    function togglePokemonInAlbum(id, explicitPrice = null, explicitRarity = null, cardImg = null, setName = null, cardNum = null, cardLang = null) {
+      if (collectionData[id] && collectionData[id].collected && explicitPrice === null && cardImg === null) {
         delete collectionData[id];
       } else {
         const fallbackPrice = explicitPrice !== null ? explicitPrice : (ESTIMATED_SPECIES_VALUES[id] || 0.15);
         const poke = POKEMON_DB[id - 1] || { name: `Pokémon #${id}`, defaultRarity: 'Común' };
+        
         collectionData[id] = {
           collected: true,
           price: fallbackPrice,
           name: poke.name,
-          rarity: explicitRarity || poke.defaultRarity
+          rarity: explicitRarity || (collectionData[id] && collectionData[id].rarity) || poke.defaultRarity,
+          cardImage: cardImg || (collectionData[id] && collectionData[id].cardImage) || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+          setName: setName || (collectionData[id] && collectionData[id].setName) || 'Colección Estándar',
+          cardNumber: cardNum || (collectionData[id] && collectionData[id].cardNumber) || `#${String(id).padStart(3, '0')}`,
+          cardLang: cardLang || (collectionData[id] && collectionData[id].cardLang) || 'es'
         };
       }
+
       updateCollectionMetrics();
       renderTrackerCards();
       renderBinderSpread();
       updateAddButtonLabel(id);
     }
 
-    function resetCollectionPrompt() {
-      if (confirm("¿Estás seguro de que deseas vaciar tu álbum? El valor volverá a 0,00 €.")) {
-        collectionData = {};
-        updateCollectionMetrics();
-        renderTrackerCards();
-        renderBinderSpread();
-        updateAddButtonLabel(currentLoadedId);
+    let inspectingCardId = null;
+    function openCardInspectModal(id) {
+      const data = collectionData[id];
+      if (!data) return;
+      inspectingCardId = id;
+
+      const coords = calculatePhysicalCoordinates(id);
+      document.getElementById('inspectModalNum').textContent = `#${String(id).padStart(3, '0')} POKÉDEX NACIONAL`;
+      document.getElementById('inspectModalName').textContent = data.name || `Pokémon #${id}`;
+      document.getElementById('inspectModalSubtitle').textContent = `${data.setName || 'Expansión'} • Carta ${data.cardNumber || ''} [${(data.cardLang || 'es').toUpperCase()}]`;
+      document.getElementById('inspectModalImg').src = data.cardImage || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+      document.getElementById('inspectModalSlot').textContent = coords.formatted;
+      document.getElementById('inspectModalRarity').textContent = data.rarity || 'Común';
+      document.getElementById('inspectModalPrice').textContent = `${Number(data.price || 0).toFixed(2)} €`;
+
+      document.getElementById('cardInspectModal').classList.remove('hidden');
+    }
+
+    function closeCardInspectModal() {
+      document.getElementById('cardInspectModal').classList.add('hidden');
+      inspectingCardId = null;
+    }
+
+    function retakeCardScanFromInspect() {
+      if (!inspectingCardId) return;
+      const id = inspectingCardId;
+      closeCardInspectModal();
+      location.hash = "#scanner";
+      const poke = POKEMON_DB[id - 1];
+      if (poke) {
+        document.getElementById('manualSearchInput').value = poke.name;
+        queryTCGdexCard(poke.name);
       }
     }
 
-    /* 6. CANVAS ANIMADO CON WIREFRAMES */
+    function removeCardFromInspectModal() {
+      if (!inspectingCardId) return;
+      togglePokemonInAlbum(inspectingCardId);
+      closeCardInspectModal();
+      showSecurityToast("Carta retirada de tu archivador físico.");
+    }
+
+    function requestResetCollection() {
+      openAppConfirmModal(
+        "Vaciar Álbum",
+        "¿Estás seguro de que deseas vaciar tu álbum? El valor volverá a 0,00 € y se desmarcarán todas las cartas.",
+        () => {
+          collectionData = {};
+          updateCollectionMetrics();
+          renderTrackerCards();
+          renderBinderSpread();
+          updateAddButtonLabel(currentLoadedId);
+          showSecurityToast("Álbum reiniciado a 0,00 €.");
+        }
+      );
+    }
+
     const heroCanvas = document.getElementById('heroCanvas');
     const ctx = heroCanvas.getContext('2d');
     let canvasW, canvasH;
@@ -1516,7 +1703,7 @@
 
     function initHeroParticles() {
       particles = [];
-      const count = Math.min(32, Math.floor(canvasW / 38));
+      const count = Math.min(28, Math.floor(canvasW / 45));
       for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * canvasW,
@@ -1609,9 +1796,9 @@
     });
     heroCanvas.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
 
-    /* 7. CÁMARA REAL Y TESSERACT OCR CLIENT-SIDE */
     let webcamStream = null;
     let tesseractWorker = null;
+    let activeWorkerLang = null;
     let currentFacingMode = "environment";
 
     const videoEl = document.getElementById('webcamVideo');
@@ -1623,6 +1810,141 @@
     const btnCamText = document.getElementById('btnCamText');
     const btnCaptureSnap = document.getElementById('btnCaptureSnap');
     const btnSwitchLens = document.getElementById('btnSwitchLens');
+
+    function setScanLanguage(lang) {
+      currentScanLanguage = lang;
+      const btnES = document.getElementById('btnLangES');
+      const btnEN = document.getElementById('btnLangEN');
+      const btnJA = document.getElementById('btnLangJA');
+      const badge = document.getElementById('langIndicatorBadge');
+      const searchBadge = document.getElementById('searchLangBadge');
+      const hudBadge = document.getElementById('hudModelBadge');
+      const endpointBadge = document.getElementById('hudEndpointLabel');
+      const reticleLabel = document.getElementById('reticleZone1Label');
+
+      [btnES, btnEN, btnJA].forEach(b => {
+        b.className = "px-3 py-1 rounded-lg font-bold transition-all text-slate-600 hover:text-tcg-dark";
+      });
+
+      if (lang === 'es') {
+        btnES.className = "px-3 py-1 rounded-lg font-bold transition-all bg-tcg-dark text-white shadow-sm";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>OCR: Español + English • Catálogo: TCGdex ES</span>`;
+        searchBadge.textContent = "ES";
+        hudBadge.textContent = "OCR: SPA + ENG (LOCAL)";
+        endpointBadge.innerHTML = `API: <strong class="text-slate-200">tcgdex.net/v2/es</strong>`;
+        reticleLabel.textContent = "ZONA 1: NOMBRE DEL POKÉMON";
+      } else if (lang === 'en') {
+        btnEN.className = "px-3 py-1 rounded-lg font-bold transition-all bg-tcg-dark text-white shadow-sm";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-sky-500"></span><span>OCR: English • Catálogo: TCGdex Global (EN)</span>`;
+        searchBadge.textContent = "EN";
+        hudBadge.textContent = "OCR: ENG (LOCAL)";
+        endpointBadge.innerHTML = `API: <strong class="text-slate-200">tcgdex.net/v2/en</strong>`;
+        reticleLabel.textContent = "ZONE 1: POKÉMON NAME";
+      } else if (lang === 'ja') {
+        btnJA.className = "px-3 py-1 rounded-lg font-bold transition-all bg-tcg-dark text-white shadow-sm";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>OCR: 日本語 Katakana/Kanji + ENG • Catálogo: TCGdex JA</span>`;
+        searchBadge.textContent = "JA";
+        hudBadge.textContent = "OCR: JPN + ENG (LOCAL)";
+        endpointBadge.innerHTML = `API: <strong class="text-slate-200">tcgdex.net/v2/ja</strong>`;
+        reticleLabel.textContent = "エリア1: ポケモン名 (KATAKANA/KANJI)";
+      }
+
+      showSecurityToast(`Modo cambiado a: ${lang.toUpperCase()}`);
+    }
+
+    const TCG_STOP_WORDS = new Set([
+      'basico', 'básico', 'fase', 'stage', 'basic', 'puntos', 'salud', 'vida',
+      'hp', 'ps', 'regla', 'rule', 'habilidad', 'ability', 'ataque', 'attack',
+      'daño', 'damage', 'debilidad', 'weakness', 'resistencia', 'resistance',
+      'coste', 'retirada', 'retreat', 'entrenador', 'trainer', 'objeto', 'item',
+      'partidario', 'supporter', 'estadio', 'stadium', 'energia', 'energía',
+      'energy', 'lanza', 'moneda', 'descarta', 'baraja', 'roba', 'pokemon',
+      'pokémon', 'vmax', 'vstar', 'mega', 'tera', 'ex', 'gx', 'lv', 'nv',
+      'edicion', 'edición', 'carta', 'cartas', 'game', 'freak', 'nintendo',
+      'creatures', 'tcg', 'the', 'los', 'las', 'del', 'con', 'por', 'para',
+      'cada', 'este', 'esta', 'estos', 'un', 'una', 'uno', 'dos', 'tres'
+    ]);
+
+    function levenshteinDistance(a, b) {
+      if (a.length === 0) return b.length;
+      if (b.length === 0) return a.length;
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
+    }
+
+    function preprocessCardImage(sourceMedia) {
+      const srcW = sourceMedia.videoWidth || sourceMedia.naturalWidth || sourceMedia.width || 640;
+      const srcH = sourceMedia.videoHeight || sourceMedia.naturalHeight || sourceMedia.height || 480;
+
+      const reticleH = Math.min(srcH * 0.72, srcW * (88 / 63) * 0.72);
+      const reticleW = reticleH * (63 / 88);
+      const reticleX = (srcW - reticleW) / 2;
+      const reticleY = (srcH - reticleH) / 2;
+
+      // Zona 1: Cabecera / Nombre
+      const nameCropY = reticleY + (reticleH * 0.02);
+      const nameCropH = reticleH * 0.22;
+      const nameCropX = reticleX + (reticleW * 0.04);
+      const nameCropW = reticleW * 0.92;
+
+      const nameCanvas = document.createElement('canvas');
+      nameCanvas.width = 640;
+      nameCanvas.height = Math.round(640 * (nameCropH / nameCropW));
+      const nctx = nameCanvas.getContext('2d');
+      nctx.drawImage(sourceMedia, nameCropX, nameCropY, nameCropW, nameCropH, 0, 0, nameCanvas.width, nameCanvas.height);
+      binarizeCanvas(nameCanvas);
+
+      // Zona 2: Pie de carta / Número y siglas
+      const footerCropY = reticleY + (reticleH * 0.84);
+      const footerCropH = reticleH * 0.15;
+      const footerCropX = reticleX + (reticleW * 0.02);
+      const footerCropW = reticleW * 0.96;
+
+      const footerCanvas = document.createElement('canvas');
+      footerCanvas.width = 640;
+      footerCanvas.height = Math.round(640 * (footerCropH / footerCropW));
+      const fctx = footerCanvas.getContext('2d');
+      fctx.drawImage(sourceMedia, footerCropX, footerCropY, footerCropW, footerCropH, 0, 0, footerCanvas.width, footerCanvas.height);
+      binarizeCanvas(footerCanvas);
+
+      return { nameCanvas, footerCanvas };
+    }
+
+    function binarizeCanvas(canvas) {
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+      let totalBrightness = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        totalBrightness += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+      }
+      const avgBrightness = totalBrightness / (data.length / 4);
+      const threshold = avgBrightness * 0.92;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        const val = gray < threshold ? 0 : 255;
+        data[i] = val;
+        data[i + 1] = val;
+        data[i + 2] = val;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
 
     async function toggleWebcam() {
       if (webcamStream) {
@@ -1664,14 +1986,14 @@
         cameraStandby.classList.add('hidden');
         laserBeam.classList.remove('hidden');
 
-        hudStatus.textContent = `CÁMARA EN VIVO (${currentFacingMode === 'environment' ? 'TRASERA' : 'FRONTAL'}) • ENFOCANDO`;
+        hudStatus.textContent = `CÁMARA EN VIVO • ALINEA LA CABECERA`;
         hudLiveDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
         btnCamText.textContent = "Apagar Cámara";
         btnCaptureSnap.disabled = false;
         if (btnSwitchLens) btnSwitchLens.disabled = false;
       } catch (err) {
         hudStatus.textContent = "ERROR AL ACCEDER A LA CÁMARA";
-        alert("No se pudo iniciar la cámara web. Comprueba los permisos en tu navegador o sube una imagen de archivo.");
+        showSecurityToast("No se pudo iniciar la cámara. Comprueba los permisos del navegador o sube una imagen.");
       }
     }
 
@@ -1682,15 +2004,25 @@
     }
 
     async function ensureTesseractWorker() {
+      const requiredLang = currentScanLanguage === 'ja' ? 'jpn+eng' : (currentScanLanguage === 'en' ? 'eng' : 'spa+eng');
+
+      if (tesseractWorker && activeWorkerLang !== requiredLang) {
+        try {
+          await tesseractWorker.terminate();
+        } catch (e) {}
+        tesseractWorker = null;
+      }
+
       if (!tesseractWorker) {
-        updateOCRProgress("Cargando modelo Tesseract...", 15);
-        tesseractWorker = await Tesseract.createWorker('spa+eng', 1, {
+        updateOCRProgress(`Cargando modelo OCR [${requiredLang.toUpperCase()}]...`, 20);
+        tesseractWorker = await Tesseract.createWorker(requiredLang, 1, {
           logger: m => {
             if (m.status === 'recognizing text') {
-              updateOCRProgress("Reconociendo texto en imagen...", Math.round(m.progress * 80) + 15);
+              updateOCRProgress("Analizando texto con IA local...", Math.round(m.progress * 70) + 25);
             }
           }
         });
+        activeWorkerLang = requiredLang;
       }
       return tesseractWorker;
     }
@@ -1708,12 +2040,8 @@
 
     async function captureAndRunOCR() {
       if (!webcamStream) return;
-      const canvas = document.getElementById('captureCanvas');
-      canvas.width = videoEl.videoWidth || 640;
-      canvas.height = videoEl.videoHeight || 480;
-      const cctx = canvas.getContext('2d');
-      cctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      processImageForOCR(canvas);
+      const crops = preprocessCardImage(videoEl);
+      processImageForOCR(crops, videoEl);
     }
 
     function handleImageUpload(e) {
@@ -1731,101 +2059,334 @@
 
         const img = new Image();
         img.onload = function() {
-          const canvas = document.getElementById('captureCanvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const cctx = canvas.getContext('2d');
-          cctx.drawImage(img, 0, 0);
-          processImageForOCR(canvas);
+          const crops = preprocessCardImage(img);
+          processImageForOCR(crops, img);
         };
         img.src = evt.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    async function processImageForOCR(canvas) {
+    async function processImageForOCR(crops, rawSource) {
       try {
-        hudStatus.textContent = "PROCESANDO OCR LOCAL...";
+        hudStatus.textContent = `ESCANEANDO EN ${currentScanLanguage.toUpperCase()}...`;
         laserBeam.classList.remove('hidden');
-        updateOCRProgress("Inicializando OCR...", 10);
+        updateOCRProgress("Leyendo nombre del Pokémon...", 20);
 
         const worker = await ensureTesseractWorker();
-        const ret = await worker.recognize(canvas);
-        const text = ret.data.text || "";
+        
+        // 1. OCR Cabecera
+        const retName = await worker.recognize(crops.nameCanvas);
+        const nameText = (retName.data && retName.data.text) ? retName.data.text : "";
 
-        updateOCRProgress("Analizando patrones TCG...", 95, text.replace(/\n/g, ' ').substring(0, 60));
-        const matched = extractPokemonOrCardNumber(text);
+        // 2. OCR Pie de Carta
+        updateOCRProgress("Leyendo número de colección...", 55);
+        const retFooter = await worker.recognize(crops.footerCanvas);
+        const footerText = (retFooter.data && retFooter.data.text) ? retFooter.data.text : "";
+
+        let detectedCardNum = extractCollectorNumber(footerText);
+        if (!detectedCardNum) {
+          detectedCardNum = extractCollectorNumber(nameText);
+        }
+
+        let candidates = extractPokemonCandidates(nameText);
+
+        if (candidates.length === 0 && rawSource) {
+          updateOCRProgress("Analizando encuadre completo...", 75);
+          const fullCanvas = document.createElement('canvas');
+          fullCanvas.width = rawSource.videoWidth || rawSource.naturalWidth || 640;
+          fullCanvas.height = rawSource.videoHeight || rawSource.naturalHeight || 480;
+          fullCanvas.getContext('2d').drawImage(rawSource, 0, 0);
+          const retFull = await worker.recognize(fullCanvas);
+          const fullText = (retFull.data && retFull.data.text) ? retFull.data.text : "";
+          candidates = extractPokemonCandidates(fullText);
+          if (!detectedCardNum) detectedCardNum = extractCollectorNumber(fullText);
+        }
+
+        updateOCRProgress("Consultando TCGdex...", 95, `${nameText.trim()} ${detectedCardNum ? '• Nº ' + detectedCardNum : ''}`);
 
         setTimeout(() => {
           document.getElementById('ocrProgressContainer').classList.add('hidden');
           laserBeam.classList.add('hidden');
-        }, 1200);
+        }, 900);
 
-        if (matched) {
-          hudStatus.textContent = `DETECTADO: ${matched.toUpperCase()}`;
-          queryTCGdexCard(matched);
+        if (candidates.length > 0) {
+          renderCandidateSuggestions(candidates);
+          const best = candidates[0];
+          hudStatus.textContent = `DETECTADO: ${best.name.toUpperCase()} ${detectedCardNum ? '(#' + detectedCardNum + ')' : ''}`;
+          if (detectedCardNum) {
+            document.getElementById('manualCardNumberInput').value = detectedCardNum;
+          }
+          queryTCGdexCard(best.name, detectedCardNum);
         } else {
-          hudStatus.textContent = "NO SE DETECTÓ NÚMERO CLARO - USANDO CHARIZARD";
-          queryTCGdexCard('Charizard');
+          hudStatus.textContent = "SIN COINCIDENCIA CLARA - BUSCA MANUALMENTE";
+          showSecurityToast("No se detectó un nombre nítido. Usa el buscador manual abajo.");
         }
       } catch (err) {
-        console.error(err);
-        hudStatus.textContent = "ERROR EN OCR - REINTENTAR";
+        console.error("Error en motor OCR:", err);
+        hudStatus.textContent = "ERROR AL PROCESAR - REINTENTAR";
         document.getElementById('ocrProgressContainer').classList.add('hidden');
+        laserBeam.classList.add('hidden');
       }
     }
 
-    function extractPokemonOrCardNumber(rawText) {
-      const clean = rawText.toLowerCase();
-      for (const id in POPULAR_NAMES) {
-        const name = POPULAR_NAMES[id].toLowerCase();
-        if (clean.includes(name)) return POPULAR_NAMES[id];
+    function extractCollectorNumber(rawText) {
+      if (!rawText) return null;
+      // Admite formatos occidentales y japoneses (ej: 199/165, SV2a 025, 025/165)
+      const fractionMatch = rawText.match(/\b([A-Z0-9]{1,5})\s*[\/|\\]\s*(\d{2,3})\b/i);
+      if (fractionMatch) {
+        return fractionMatch[1];
       }
-      const numberMatch = rawText.match(/\b(\d{1,3})\s*[\/|]\s*(\d{2,3})\b/);
-      if (numberMatch && numberMatch[1]) return numberMatch[1];
-      const words = rawText.match(/[a-zA-ZáéíóúÁÉÍÓÚ]{4,}/g);
-      if (words && words.length > 0) return words[0];
+      const numMatch = rawText.match(/\b(\d{3})\b/);
+      if (numMatch) {
+        return numMatch[1];
+      }
       return null;
+    }
+
+    function extractPokemonCandidates(rawText) {
+      if (!rawText) return [];
+      const cleanTokens = rawText
+        .toLowerCase()
+        .replace(/[^a-záéíóúñ0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s]/gi, ' ')
+        .split(/\s+/)
+        .filter(t => t.length >= 2 && !TCG_STOP_WORDS.has(t));
+
+      const candidates = [];
+      const seenIds = new Set();
+
+      for (const token of cleanTokens) {
+        for (const p of POKEMON_DB) {
+          if (!p.name || seenIds.has(p.id)) continue;
+          const pNameLower = p.name.toLowerCase();
+          const pJpName = (p.jpName || "").toLowerCase();
+
+          // Coincidencia en Japonés (Katakana)
+          if (pJpName && (token === pJpName || pJpName.includes(token))) {
+            candidates.push({ id: p.id, name: p.name, score: 1.0, reason: "Nombre Japonés (JA)" });
+            seenIds.add(p.id);
+            continue;
+          }
+
+          if (token === pNameLower) {
+            candidates.push({ id: p.id, name: p.name, score: 1.0, reason: "Nombre Exacto" });
+            seenIds.add(p.id);
+            continue;
+          }
+
+          if (pNameLower.includes(token) && token.length >= 4) {
+            candidates.push({ id: p.id, name: p.name, score: 0.88, reason: "Subcadena" });
+            seenIds.add(p.id);
+            continue;
+          }
+
+          const dist = levenshteinDistance(token, pNameLower);
+          const maxAllowed = pNameLower.length <= 5 ? 1 : 2;
+          if (dist <= maxAllowed) {
+            const score = 1 - (dist / pNameLower.length);
+            candidates.push({ id: p.id, name: p.name, score, reason: `Aproximación (${Math.round(score * 100)}%)` });
+            seenIds.add(p.id);
+          }
+        }
+      }
+
+      return candidates.sort((a, b) => b.score - a.score).slice(0, 4);
+    }
+
+    function renderCandidateSuggestions(candidates) {
+      const box = document.getElementById('scannerSuggestionsContainer');
+      const chipContainer = document.getElementById('scannerCandidateChips');
+      const badge = document.getElementById('scannerConfidenceBadge');
+
+      if (!candidates || candidates.length === 0) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      badge.textContent = `${Math.round(candidates[0].score * 100)}% Coincidencia`;
+      chipContainer.innerHTML = '';
+
+      candidates.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = "px-3 py-1.5 rounded-lg bg-white border border-emerald-300 hover:border-emerald-600 text-emerald-950 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-transform active:scale-95";
+        btn.onclick = () => {
+          hudStatus.textContent = `SELECCIONADO: ${c.name.toUpperCase()}`;
+          queryTCGdexCard(c.name);
+        };
+        btn.innerHTML = `
+          <span>#${String(c.id).padStart(3, '0')} ${c.name}</span>
+          <span class="text-[9px] text-emerald-600 font-normal">(${c.reason})</span>
+        `;
+        chipContainer.appendChild(btn);
+      });
+
+      box.classList.remove('hidden');
     }
 
     function triggerManualSearch() {
       const q = document.getElementById('manualSearchInput').value.trim();
+      const num = document.getElementById('manualCardNumberInput').value.trim();
       if (!q) return;
-      queryTCGdexCard(q);
+      queryTCGdexCard(q, num);
     }
 
-    /* 8. API OFICIAL DE TCGDEX EN ESPAÑOL (/v2/es) */
-    async function queryTCGdexCard(query) {
+    async function queryTCGdexCard(query, targetNumber = null) {
       const loader = document.getElementById('cardImgLoader');
-      loader.classList.remove('hidden');
+      if (loader) loader.classList.remove('hidden');
 
       try {
-        const searchRes = await fetch(`https://api.tcgdex.net/v2/es/cards?name=${encodeURIComponent(query)}`);
-        if (!searchRes.ok) throw new Error("Error en la búsqueda");
-        const list = await searchRes.json();
+        let list = [];
+        let resolvedLang = currentScanLanguage;
+
+        // Orden de consulta según el idioma seleccionado
+        const endpoints = [];
+        if (currentScanLanguage === 'ja') {
+          endpoints.push({ lang: 'ja', url: `https://api.tcgdex.net/v2/ja/cards?name=${encodeURIComponent(query)}` });
+          endpoints.push({ lang: 'en', url: `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(query)}` });
+          endpoints.push({ lang: 'es', url: `https://api.tcgdex.net/v2/es/cards?name=${encodeURIComponent(query)}` });
+        } else if (currentScanLanguage === 'en') {
+          endpoints.push({ lang: 'en', url: `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(query)}` });
+          endpoints.push({ lang: 'es', url: `https://api.tcgdex.net/v2/es/cards?name=${encodeURIComponent(query)}` });
+        } else {
+          endpoints.push({ lang: 'es', url: `https://api.tcgdex.net/v2/es/cards?name=${encodeURIComponent(query)}` });
+          endpoints.push({ lang: 'en', url: `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(query)}` });
+        }
+
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(ep.url);
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) {
+                list = data;
+                resolvedLang = ep.lang;
+                break;
+              }
+            }
+          } catch (e) {}
+        }
 
         if (list && list.length > 0) {
-          const cardSummary = list[0];
-          const detailRes = await fetch(`https://api.tcgdex.net/v2/es/cards/${cardSummary.id}`);
-          const cardData = await detailRes.json();
-          renderTCGdexData(cardData);
-        } else {
-          if (!isNaN(query)) {
-            const num = parseInt(query, 10);
-            renderFallbackPokemon(num);
-          } else {
-            alert(`No se encontraron cartas en TCGdex para "${query}". Intenta con otro nombre.`);
+          let matchedSummary = list[0];
+          if (targetNumber) {
+            const cleanTarget = targetNumber.replace(/^0+/, '').toLowerCase();
+            const foundByNum = list.find(c => {
+              const localClean = String(c.localId || '').replace(/^0+/, '').toLowerCase();
+              return localClean === cleanTarget || String(c.localId).includes(targetNumber);
+            });
+            if (foundByNum) {
+              matchedSummary = foundByNum;
+            }
           }
+
+          let cardData = null;
+          try {
+            const detailRes = await fetch(`https://api.tcgdex.net/v2/${resolvedLang}/cards/${matchedSummary.id}`);
+            if (detailRes.ok) cardData = await detailRes.json();
+          } catch (e) {}
+
+          if (!cardData && resolvedLang !== 'en') {
+            try {
+              const detailResEn = await fetch(`https://api.tcgdex.net/v2/en/cards/${matchedSummary.id}`);
+              if (detailResEn.ok) {
+                cardData = await detailResEn.json();
+                resolvedLang = 'en';
+              }
+            } catch (e) {}
+          }
+
+          if (cardData) {
+            renderTCGdexData(cardData, resolvedLang);
+            renderCardVariantsCarousel(list, matchedSummary.id, resolvedLang);
+            return;
+          }
+        }
+
+        // Búsqueda en catálogo nacional local de respaldo
+        const matched = POKEMON_DB.find(p => 
+          p.name.toLowerCase() === query.toLowerCase() || 
+          (p.jpName && p.jpName.toLowerCase() === query.toLowerCase())
+        );
+
+        if (matched) {
+          renderFallbackPokemon(matched.id);
+          showSecurityToast(`Mostrando datos de ${matched.name} (#${matched.id})`);
+        } else if (!isNaN(query)) {
+          renderFallbackPokemon(parseInt(query, 10));
+        } else {
+          showSecurityToast(`No se encontraron cartas para "${query}" en ${currentScanLanguage.toUpperCase()}.`);
         }
       } catch (e) {
         console.error("Error consultando TCGdex:", e);
-        renderFallbackPokemon(6);
+        const matched = POKEMON_DB.find(p => p.name.toLowerCase() === query.toLowerCase());
+        renderFallbackPokemon(matched ? matched.id : 6);
       } finally {
-        loader.classList.add('hidden');
+        if (loader) loader.classList.add('hidden');
       }
     }
 
-    function renderTCGdexData(card) {
+    function renderCardVariantsCarousel(cardsList, selectedId, lang = 'es') {
+      const container = document.getElementById('cardVariantsSelector');
+      const carousel = document.getElementById('variantsCarousel');
+      const countLabel = document.getElementById('variantsCount');
+
+      if (!cardsList || cardsList.length <= 1) {
+        container.classList.add('hidden');
+        return;
+      }
+
+      countLabel.textContent = cardsList.length;
+      carousel.innerHTML = '';
+
+      cardsList.slice(0, 16).forEach(card => {
+        const isSelected = card.id === selectedId;
+        const item = document.createElement('div');
+        item.className = `flex-shrink-0 w-28 p-2 rounded-xl border-2 cursor-pointer transition-all ${
+          isSelected 
+            ? 'border-tcg-crimson bg-rose-50 shadow-md ring-2 ring-rose-200' 
+            : 'border-slate-300 bg-white hover:border-slate-500 hover:shadow-sm'
+        }`;
+
+        item.onclick = async () => {
+          const loader = document.getElementById('cardImgLoader');
+          if (loader) loader.classList.remove('hidden');
+          try {
+            let res = await fetch(`https://api.tcgdex.net/v2/${lang}/cards/${card.id}`);
+            let data = res.ok ? await res.json() : null;
+            if (!data && lang !== 'en') {
+              res = await fetch(`https://api.tcgdex.net/v2/en/cards/${card.id}`);
+              if (res.ok) data = await res.json();
+            }
+            if (data) {
+              renderTCGdexData(data, lang);
+              renderCardVariantsCarousel(cardsList, card.id, lang);
+            }
+          } finally {
+            if (loader) loader.classList.add('hidden');
+          }
+        };
+
+        const imgThumb = card.image ? `${card.image}/low.webp` : 'https://placehold.co/100x140/f1f5f9/94a3b8?text=TCG';
+        const setName = (card.set && card.set.name) ? card.set.name : 'Expansión';
+
+        item.innerHTML = `
+          <div class="aspect-[63/88] w-full rounded bg-slate-50 flex items-center justify-center overflow-hidden mb-1 border border-slate-200">
+            <img src="${imgThumb}" alt="${card.name}" class="max-h-full max-w-full object-contain" loading="lazy">
+          </div>
+          <div class="text-[9px] font-mono leading-tight">
+            <span class="font-bold text-tcg-dark block truncate">#${card.localId || '---'}</span>
+            <span class="text-slate-500 block truncate">${setName}</span>
+          </div>
+        `;
+
+        carousel.appendChild(item);
+      });
+
+      container.classList.remove('hidden');
+    }
+
+    function renderTCGdexData(card, lang = 'es') {
       const name = card.name || "Pokémon";
       const setObj = card.set || {};
       const setName = setObj.name || "Expansión Base";
@@ -1837,14 +2398,19 @@
       if (card.dexId && card.dexId.length) {
         natId = card.dexId[0];
       } else {
-        const found = POKEMON_DB.find(p => p.name.toLowerCase() === name.toLowerCase());
+        const found = POKEMON_DB.find(p => 
+          p.name.toLowerCase() === name.toLowerCase() || 
+          (p.jpName && p.jpName.toLowerCase() === name.toLowerCase())
+        );
         if (found) natId = found.id;
       }
       currentLoadedId = natId;
+      currentLoadedLang = lang;
 
       let priceVal = 0.20;
       let priceTrend = "--- €";
-      let priceRange = "Sin cotización directa";
+      let priceRange = "Sin cotización directa EUR";
+      let isJapaneseWithoutMKM = false;
 
       if (card.pricing && card.pricing.cardmarket) {
         const cm = card.pricing.cardmarket;
@@ -1855,16 +2421,20 @@
         const lowVal = cm.low ? `${Number(cm.low).toFixed(2)} €` : "N/D";
         const avgVal = cm.avg30 ? `${Number(cm.avg30).toFixed(2)} €` : "N/D";
         priceRange = `${lowVal} (Mín) / ${avgVal} (Media)`;
-      } else if (card.pricing && card.pricing.tcgplayer) {
-        const tp = card.pricing.tcgplayer;
-        const usdPrice = tp.market || tp.mid || tp.low;
-        if (usdPrice) {
-          priceVal = usdPrice * 0.92;
-          priceTrend = `${priceVal.toFixed(2)} € (TCGplayer)`;
-          priceRange = `Cotización convertida de $${usdPrice}`;
-        }
+      } else if (lang === 'ja') {
+        isJapaneseWithoutMKM = true;
+        priceVal = 3.50; // Estimación base de carta importada
+        priceTrend = "~3.50 € (Est.)";
+        priceRange = "Importación Japón (Yuyu-tei / SNKRDUNK)";
       }
+
       currentLoadedPrice = priceVal;
+      currentLoadedName = name;
+      currentLoadedSetName = setName;
+      currentLoadedCardNum = `#${localId}/${totalInSet}`;
+      currentLoadedCardImg = card.image 
+        ? `${card.image}/high.webp` 
+        : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${natId}.png`;
 
       document.getElementById('resPokedexNum').textContent = `#${String(natId).padStart(3, '0')} POKÉDEX NACIONAL`;
       document.getElementById('resCardName').textContent = name;
@@ -1874,16 +2444,15 @@
       document.getElementById('resPriceRange').textContent = priceRange;
       document.getElementById('resSetDetails').textContent = setName;
 
-      // Cálculo de coordenadas físicas
+      const langLabel = lang === 'ja' ? 'JAPONÉS (JA)' : (lang === 'en' ? 'ENGLISH (EN)' : 'ESPAÑOL (ES)');
+      document.getElementById('resCardLangBadge').textContent = langLabel;
+      document.getElementById('resPriceMetricLabel').textContent = isJapaneseWithoutMKM ? "Mercado:" : "Rango 30 días:";
+
       const coords = calculatePhysicalCoordinates(natId);
       document.getElementById('resNationalSlot').textContent = coords.formatted;
 
       const imgEl = document.getElementById('resCardImage');
-      if (card.image) {
-        imgEl.src = `${card.image}/high.webp`;
-      } else {
-        imgEl.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${natId}.png`;
-      }
+      imgEl.src = currentLoadedCardImg;
 
       document.getElementById('selPhysicalRarityVariant').value = rarity;
       document.getElementById('lnkCardmarket').href = `https://www.cardmarket.com/es/Pokemon/Products/Singles?searchString=${encodeURIComponent(name)}`;
@@ -1909,6 +2478,11 @@
       const data = POKEMON_DB[id - 1] || { id, name: `Pokémon #${id}`, defaultRarity: 'Común' };
       const fallbackPrice = ESTIMATED_SPECIES_VALUES[id] || 0.15;
       currentLoadedPrice = fallbackPrice;
+      currentLoadedName = data.name;
+      currentLoadedSetName = "Edición Estándar";
+      currentLoadedCardNum = `#${String(id).padStart(3, '0')}`;
+      currentLoadedLang = currentScanLanguage;
+      currentLoadedCardImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 
       document.getElementById('resPokedexNum').textContent = `#${String(id).padStart(3, '0')} POKÉDEX NACIONAL`;
       document.getElementById('resCardName').textContent = data.name;
@@ -1917,11 +2491,12 @@
       document.getElementById('resMarketPrice').textContent = `${fallbackPrice.toFixed(2)} €`;
       document.getElementById('resPriceRange').textContent = "0.08 € - 0.50 € (Bulk)";
       document.getElementById('resSetDetails').textContent = "Pokédex Nacional";
+      document.getElementById('resCardLangBadge').textContent = currentScanLanguage.toUpperCase();
 
       const coords = calculatePhysicalCoordinates(id);
       document.getElementById('resNationalSlot').textContent = coords.formatted;
 
-      document.getElementById('resCardImage').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+      document.getElementById('resCardImage').src = currentLoadedCardImg;
       document.getElementById('lnkCardmarket').href = `https://www.cardmarket.com/es/Pokemon/Products/Singles?searchString=${encodeURIComponent(data.name)}`;
 
       document.getElementById('selPhysicalRarityVariant').value = data.defaultRarity;
@@ -1938,10 +2513,20 @@
 
     function addScannedCardToCollection() {
       const chosenRarity = document.getElementById('selPhysicalRarityVariant').value;
-      togglePokemonInAlbum(currentLoadedId, currentLoadedPrice, chosenRarity);
+      togglePokemonInAlbum(
+        currentLoadedId, 
+        currentLoadedPrice, 
+        chosenRarity, 
+        currentLoadedCardImg, 
+        currentLoadedSetName, 
+        currentLoadedCardNum,
+        currentLoadedLang
+      );
+      
+      const coords = calculatePhysicalCoordinates(currentLoadedId);
+      showSecurityToast(`¡${currentLoadedName} añadida al archivador! (${coords.formatted})`);
     }
 
-    /* 9. GESTOR DE CATÁLOGO NACIONAL Y MULTI-FILTROS */
     let trackerCurrentPage = 1;
     const TRACKER_PAGE_SIZE = 36;
     let trackerStatusFilter = 'all';
@@ -1958,25 +2543,24 @@
         if (trackerStatusFilter === 'missing' && isCollected) return false;
         if (trackerGenFilter !== 'all' && p.gen !== parseInt(trackerGenFilter, 10)) return false;
 
-        // Filtro de 18 tipos elementales
         if (trackerTypeFilter !== 'all' && !p.types.includes(trackerTypeFilter)) return false;
 
-        // Filtro de rareza física
         if (trackerRarityFilter !== 'all') {
           const userRarity = (collectionData[p.id] && collectionData[p.id].rarity) || p.defaultRarity;
           if (userRarity !== trackerRarityFilter) return false;
         }
 
-        // Filtro de expansión / set
         if (trackerSetFilter !== 'all') {
           if (trackerSetFilter === '151' && p.gen !== 1) return false;
+          if (trackerSetFilter === 'jp-sv2a' && p.gen !== 1) return false;
         }
 
         if (trackerSearchQuery) {
           const q = trackerSearchQuery.toLowerCase();
           const matchNum = String(p.id).includes(q);
           const matchName = p.name.toLowerCase().includes(q);
-          if (!matchNum && !matchName) return false;
+          const matchJp = p.jpName && p.jpName.toLowerCase().includes(q);
+          if (!matchNum && !matchName && !matchJp) return false;
         }
         return true;
       });
@@ -2014,45 +2598,82 @@
       }
 
       pageItems.forEach(p => {
-        const isCollected = collectionData[p.id] && collectionData[p.id].collected;
-        const cardVal = isCollected && collectionData[p.id].price ? Number(collectionData[p.id].price).toFixed(2) + ' €' : '';
+        const cardData = collectionData[p.id];
+        const isCollected = cardData && cardData.collected;
+        const cardVal = isCollected && cardData.price ? Number(cardData.price).toFixed(2) + ' €' : '';
         const coords = calculatePhysicalCoordinates(p.id);
         const card = document.createElement('div');
+        const hasRealCardImage = isCollected && cardData.cardImage;
         
-        card.className = `group relative bg-white border ${isCollected ? 'border-tcg-dark ring-2 ring-tcg-dark/10' : 'border-slate-200'} rounded-xl p-3 flex flex-col justify-between transition-all hover:shadow-md cursor-pointer aspect-[63/88] overflow-hidden`;
-        card.onclick = () => togglePokemonInAlbum(p.id);
+        card.className = `group relative bg-white border ${isCollected ? 'border-tcg-dark ring-2 ring-tcg-dark/10' : 'border-slate-200'} rounded-xl p-2.5 flex flex-col justify-between transition-all hover:shadow-md cursor-pointer aspect-[63/88] overflow-hidden`;
+        
+        card.onclick = () => {
+          if (isCollected && hasRealCardImage) {
+            openCardInspectModal(p.id);
+          } else {
+            togglePokemonInAlbum(p.id);
+          }
+        };
 
-        card.innerHTML = `
-          <div class="flex items-center justify-between border-b border-slate-100 pb-1">
-            <span class="font-mono text-xs font-bold ${isCollected ? 'text-tcg-crimson' : 'text-slate-400'}">
-              #${String(p.id).padStart(3, '0')}
-            </span>
-            <div class="flex items-center gap-1">
-              ${cardVal ? `<span class="text-[8px] font-mono font-bold text-emerald-600">${cardVal}</span>` : ''}
-              <span class="w-3.5 h-3.5 rounded border ${isCollected ? 'border-tcg-dark bg-tcg-dark text-white' : 'border-slate-300 bg-white'} flex items-center justify-center text-[9px] font-bold">
-                ${isCollected ? '✓' : ''}
+        if (hasRealCardImage) {
+          card.innerHTML = `
+            <div class="flex items-center justify-between z-10">
+              <span class="font-mono text-[9px] font-bold text-white bg-slate-950/80 px-1 rounded">
+                #${String(p.id).padStart(3, '0')}
+              </span>
+              <span class="text-[8px] font-mono font-bold text-white bg-emerald-600 px-1 rounded shadow-sm">
+                ${cardVal || '✓'}
               </span>
             </div>
-          </div>
 
-          <div class="my-auto flex items-center justify-center relative py-1">
             <img 
-              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png" 
+              src="${cardData.cardImage}" 
               alt="${p.name}" 
               loading="lazy"
-              class="w-16 h-16 pixelated-render ${isCollected ? '' : 'filter brightness-0 opacity-20 group-hover:opacity-40'} transition-all transform group-hover:scale-110"
-              onerror="this.style.display='none'"
+              class="absolute inset-0 w-full h-full object-contain p-1 z-0 transition-transform group-hover:scale-105"
             >
-          </div>
 
-          <div class="border-t border-slate-100 pt-1 text-center">
-            <h4 class="text-[10px] font-bold text-tcg-dark uppercase tracking-tight truncate">${p.name}</h4>
-            <div class="flex items-center justify-between text-[7.5px] font-mono text-slate-400 pt-0.5">
-              <span>GEN ${p.gen}</span>
-              <span class="text-tcg-dark font-semibold">H${coords.sheet}•B${coords.pocket}</span>
+            <div class="z-10 bg-slate-950/80 rounded px-1 text-center truncate border border-slate-800">
+              <h4 class="text-[8.5px] font-bold text-white uppercase tracking-tight truncate">${p.name}</h4>
+              <div class="flex items-center justify-between text-[7px] font-mono text-slate-300">
+                <span>GEN ${p.gen}</span>
+                <span class="text-emerald-400 font-semibold truncate">${cardData.setName || `H${coords.sheet}•B${coords.pocket}`}</span>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="flex items-center justify-between border-b border-slate-100 pb-1">
+              <span class="font-mono text-xs font-bold ${isCollected ? 'text-tcg-crimson' : 'text-slate-400'}">
+                #${String(p.id).padStart(3, '0')}
+              </span>
+              <div class="flex items-center gap-1">
+                ${cardVal ? `<span class="text-[8px] font-mono font-bold text-emerald-600">${cardVal}</span>` : ''}
+                <span class="w-3.5 h-3.5 rounded border ${isCollected ? 'border-tcg-dark bg-tcg-dark text-white' : 'border-slate-300 bg-white'} flex items-center justify-center text-[9px] font-bold">
+                  ${isCollected ? '✓' : ''}
+                </span>
+              </div>
+            </div>
+
+            <div class="my-auto flex items-center justify-center relative py-1">
+              <img 
+                src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png" 
+                alt="${p.name}" 
+                loading="lazy"
+                class="w-16 h-16 pixelated-render ${isCollected ? '' : 'filter brightness-0 opacity-20 group-hover:opacity-40'} transition-all transform group-hover:scale-110"
+                onerror="this.style.display='none'"
+              >
+            </div>
+
+            <div class="border-t border-slate-100 pt-1 text-center">
+              <h4 class="text-[10px] font-bold text-tcg-dark uppercase tracking-tight truncate">${p.name}</h4>
+              <div class="flex items-center justify-between text-[7.5px] font-mono text-slate-400 pt-0.5">
+                <span>GEN ${p.gen}</span>
+                <span class="text-tcg-dark font-semibold">H${coords.sheet}•B${coords.pocket}</span>
+              </div>
+            </div>
+          `;
+        }
 
         grid.appendChild(card);
       });
@@ -2100,26 +2721,11 @@
       renderTrackerCards();
     }
 
-    function clearAllTrackerFilters() {
-      document.getElementById('trackerSearchInput').value = '';
-      document.getElementById('trackerGenSelect').value = 'all';
-      document.getElementById('trackerTypeSelect').value = 'all';
-      document.getElementById('trackerRaritySelect').value = 'all';
-      document.getElementById('trackerSetSelect').value = 'all';
-      trackerSearchQuery = '';
-      trackerGenFilter = 'all';
-      trackerTypeFilter = 'all';
-      trackerRarityFilter = 'all';
-      trackerSetFilter = 'all';
-      setFilterStatus('all');
-    }
-
     function changePage(delta) {
       trackerCurrentPage += delta;
       renderTrackerCards();
     }
 
-    /* 10. CALCULADORA DE BULK & LOTES */
     function calculateBulkTotal() {
       const commons = parseFloat(document.getElementById('calcBulkCommons').value) || 0;
       const holos = parseFloat(document.getElementById('calcBulkHolos').value) || 0;
@@ -2157,7 +2763,6 @@
       }
     }
 
-    /* 11. EXPORTACIÓN PARA PLACEHOLDERS IMPRIMIBLES */
     function openExportModal() {
       const modal = document.getElementById('exportModal');
       const textarea = document.getElementById('exportNumbersTextarea');
@@ -2175,16 +2780,6 @@
       modal.classList.remove('hidden');
     }
 
-    function openExportModalWithSpecificId(id) {
-      const modal = document.getElementById('exportModal');
-      const textarea = document.getElementById('exportNumbersTextarea');
-      const totalCount = document.getElementById('exportModalTotalCount');
-
-      textarea.value = String(id);
-      totalCount.textContent = `Ficha de sustitución para Pokémon #${id}`;
-      modal.classList.remove('hidden');
-    }
-
     function closeExportModal() {
       document.getElementById('exportModal').classList.add('hidden');
     }
@@ -2198,7 +2793,6 @@
       setTimeout(() => { btn.textContent = "Copiar al portapapeles"; }, 1800);
     }
 
-    /* 12. ARRANQUE GLOBAL */
     window.onload = function() {
       initPokemonDatabase();
       checkInitialAuth();
