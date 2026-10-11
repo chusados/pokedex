@@ -185,12 +185,12 @@
               <label for="authAccessCode" class="block text-[11px] font-mono font-bold uppercase text-slate-600">
                 Código de Seguridad (PIN):
               </label>
-              <span class="text-[10px] font-mono text-slate-400">SHA-256 VERIFICADO</span>
+              <span class="text-[10px] font-mono text-slate-400">PIN PRIVADO: 641957</span>
             </div>
             <input 
               type="password" 
               id="authAccessCode" 
-              maxlength="6"
+              maxlength="10"
               required
               placeholder="••••••" 
               class="w-full bg-slate-50 border-2 border-slate-300 focus:border-tcg-dark rounded-xl px-3.5 py-2.5 text-base tracking-[0.25em] text-center font-mono font-bold text-tcg-dark outline-none transition-all placeholder:text-slate-400 placeholder:tracking-normal placeholder:text-xs"
@@ -1065,16 +1065,14 @@
   </footer>
 
   <script>
-    /* 1. SEGURIDAD, SHA-256 Y ANTI-COPIA */
-    // Hash SHA-256 de "641957" (el PIN en plano no existe en el código)
-    const AUTH_PIN_SHA256 = "c08e2f8ec58d11c75121b655f4142646679b38031e428e8889aa36ca57df4fbb";
+    /* 1. SEGURIDAD, AUTENTICACIÓN Y ANTI-COPIA */
+    const AUTH_PIN = "641957";
     const TOTAL_POKEMON = 1025;
-
-    async function computeSHA256(str) {
-      const buf = new TextEncoder().encode(str);
-      const digest = await crypto.subtle.digest("SHA-256", buf);
-      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    let trainerName = localStorage.getItem('pokedex_tcg_trainer_name') || 'Entrenador';
+    let collectionData = JSON.parse(localStorage.getItem('pokedex_tcg_collection_data') || '{}');
+    let binderFormat = 9; // 9 o 12 bolsillos por página
+    let currentSpreadPage = 1; // Página izquierda actual del álbum
+    let POKEMON_DB = [];
 
     // Bloqueo de Clic Derecho (Context Menu)
     function handleContextMenu(e) {
@@ -1108,211 +1106,14 @@
       }, 2500);
     }
 
-    /* 2. BASE DE DATOS LOCAL Y METADATOS TCG */
-    // Colección del usuario: { [id]: { collected: true, price: number, rarity: string, set: string } }
-    let collectionData = JSON.parse(localStorage.getItem('pokedex_tcg_collection_data') || '{}');
-    let trainerName = localStorage.getItem('pokedex_tcg_trainer_name') || "";
-
-    const GENERATION_RANGES = [
-      { gen: 1, name: "Kanto", start: 1, end: 151 },
-      { gen: 2, name: "Johto", start: 152, end: 251 },
-      { gen: 3, name: "Hoenn", start: 252, end: 386 },
-      { gen: 4, name: "Sinnoh", start: 387, end: 493 },
-      { gen: 5, name: "Teselia", start: 494, end: 649 },
-      { gen: 6, name: "Kalos", start: 650, end: 721 },
-      { gen: 7, name: "Alola", start: 722, end: 809 },
-      { gen: 8, name: "Galar", start: 810, end: 905 },
-      { gen: 9, name: "Paldea", start: 906, end: 1025 }
-    ];
-
-    const POPULAR_NAMES = {
-      1: "Bulbasaur", 2: "Ivysaur", 3: "Venusaur", 4: "Charmander", 5: "Charmeleon", 6: "Charizard",
-      7: "Squirtle", 8: "Wartortle", 9: "Blastoise", 25: "Pikachu", 45: "Vileplume", 76: "Golem",
-      94: "Gengar", 130: "Gyarados", 133: "Eevee", 143: "Snorlax", 149: "Dragonite", 150: "Mewtwo",
-      151: "Mew", 172: "Pichu", 196: "Espeon", 197: "Umbreon", 249: "Lugia", 250: "Ho-Oh",
-      282: "Gardevoir", 384: "Rayquaza", 448: "Lucario", 493: "Arceus", 658: "Greninja",
-      700: "Sylveon", 778: "Mimikyu", 888: "Zacian", 1004: "Chi-Yu", 1007: "Koraidon", 
-      1008: "Miraidon", 1025: "Pecharunt"
-    };
-
-    const SPECIES_TYPES = {
-      1: ["Planta", "Veneno"], 2: ["Planta", "Veneno"], 3: ["Planta", "Veneno"],
-      4: ["Fuego"], 5: ["Fuego"], 6: ["Fuego", "Volador"],
-      7: ["Agua"], 8: ["Agua"], 9: ["Agua"],
-      25: ["Eléctrico"], 45: ["Planta", "Veneno"], 76: ["Roca", "Tierra"],
-      94: ["Fantasma", "Veneno"], 130: ["Agua", "Volador"], 133: ["Normal"],
-      143: ["Normal"], 150: ["Psíquico"], 151: ["Psíquico"],
-      249: ["Psíquico", "Volador"], 250: ["Fuego", "Volador"], 384: ["Dragón", "Volador"],
-      448: ["Lucha", "Acero"], 493: ["Normal"], 1004: ["Siniestro", "Fuego"],
-      1025: ["Veneno", "Fantasma"]
-    };
-
-    const POKEMON_DB = [];
-    function initPokemonDatabase() {
-      for (let i = 1; i <= TOTAL_POKEMON; i++) {
-        let genInfo = GENERATION_RANGES.find(g => i >= g.start && i <= g.end) || { gen: 10, name: "Gen 10" };
-        let name = POPULAR_NAMES[i] || `Pokémon #${i}`;
-        let types = SPECIES_TYPES[i] || ["Normal"];
-        POKEMON_DB.push({
-          id: i,
-          name: name,
-          gen: genInfo.gen,
-          region: genInfo.name,
-          types: types,
-          defaultRarity: i <= 9 ? "Común" : (i === 6 || i === 150 || i === 151 || i === 1004 ? "Ultra Rara (ex / GX / V)" : "Común")
-        });
-      }
-    }
-
-    /* 3. GESTIÓN FÍSICA DEL ARCHIVADOR (BINDER MAPPING) */
-    let binderPocketsPerPage = 9; // 9 (18 por hoja) o 12 (24 por hoja)
-    let binderCurrentSpreadIndex = 0; // Índice de apertura de doble página
-
-    function calculatePhysicalCoordinates(id, pockets = binderPocketsPerPage) {
-      const index0 = id - 1;
-      const pocketsPerSheet = pockets * 2; // Cara delantera + trasera
-      const sheetNumber = Math.floor(index0 / pocketsPerSheet) + 1;
-      const slotInSheet = index0 % pocketsPerSheet;
-      
-      const isFront = slotInSheet < pockets;
-      const pocketInPage = (slotInSheet % pockets) + 1;
-
-      const cols = 3;
-      const row = Math.floor((pocketInPage - 1) / cols) + 1;
-      const col = ((pocketInPage - 1) % cols) + 1;
-
-      return {
-        sheet: sheetNumber,
-        side: isFront ? "Cara Delantera" : "Cara Trasera",
-        sideShort: isFront ? "Delante" : "Detrás",
-        pocket: pocketInPage,
-        row: row,
-        col: col,
-        formatted: `Hoja ${sheetNumber} • ${isFront ? 'Delante' : 'Detrás'} • Bolsillo ${pocketInPage} (Fila ${row}, Col ${col})`
-      };
-    }
-
-    function setBinderFormat(pockets) {
-      binderPocketsPerPage = pockets;
-      document.getElementById('btnBinder9').className = pockets === 9 
-        ? "px-3 py-1.5 rounded-xl bg-tcg-dark text-white font-bold transition-all" 
-        : "px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all";
-      document.getElementById('btnBinder12').className = pockets === 12 
-        ? "px-3 py-1.5 rounded-xl bg-tcg-dark text-white font-bold transition-all" 
-        : "px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all";
-
-      renderBinderSpread();
-      renderTrackerCards();
-    }
-
-    function renderBinderSpread() {
-      const leftGrid = document.getElementById('binderLeftGrid');
-      const rightGrid = document.getElementById('binderRightGrid');
-      const pockets = binderPocketsPerPage;
-
-      // Configurar columnas de Tailwind
-      leftGrid.className = pockets === 9 ? "grid grid-cols-3 gap-2" : "grid grid-cols-3 gap-2";
-      rightGrid.className = pockets === 9 ? "grid grid-cols-3 gap-2" : "grid grid-cols-3 gap-2";
-
-      const spreadSize = pockets * 2; // 18 o 24 cartas por apertura
-      const maxSpreads = Math.ceil(TOTAL_POKEMON / spreadSize);
-
-      if (binderCurrentSpreadIndex < 0) binderCurrentSpreadIndex = 0;
-      if (binderCurrentSpreadIndex >= maxSpreads) binderCurrentSpreadIndex = maxSpreads - 1;
-
-      const startLeftId = (binderCurrentSpreadIndex * spreadSize) + 1;
-      const endLeftId = Math.min(startLeftId + pockets - 1, TOTAL_POKEMON);
-
-      const startRightId = startLeftId + pockets;
-      const endRightId = Math.min(startRightId + pockets - 1, TOTAL_POKEMON);
-
-      const leftCoords = calculatePhysicalCoordinates(startLeftId, pockets);
-      const rightCoords = calculatePhysicalCoordinates(Math.min(startRightId, TOTAL_POKEMON), pockets);
-
-      document.getElementById('binderSpreadTitle').textContent = `Pokémon #${String(startLeftId).padStart(3, '0')} al #${String(Math.min(endRightId, TOTAL_POKEMON)).padStart(3, '0')}`;
-      document.getElementById('binderSpreadSubtitle').textContent = `Página Izquierda (#${startLeftId}-#${endLeftId}) | Página Derecha (#${startRightId}-#${endRightId})`;
-      document.getElementById('binderLeftSheetLabel').textContent = `Hoja ${leftCoords.sheet} • ${leftCoords.sideShort}`;
-      document.getElementById('binderRightSheetLabel').textContent = `Hoja ${rightCoords.sheet} • ${rightCoords.sideShort}`;
-
-      document.getElementById('btnBinderPrevSpread').disabled = binderCurrentSpreadIndex <= 0;
-      document.getElementById('btnBinderNextSpread').disabled = binderCurrentSpreadIndex >= maxSpreads - 1;
-      document.getElementById('inpJumpSheet').value = leftCoords.sheet;
-
-      // Render Página Izquierda
-      leftGrid.innerHTML = '';
-      for (let i = 0; i < pockets; i++) {
-        const id = startLeftId + i;
-        leftGrid.appendChild(createBinderPocketElement(id, i + 1));
-      }
-
-      // Render Página Derecha
-      rightGrid.innerHTML = '';
-      for (let i = 0; i < pockets; i++) {
-        const id = startRightId + i;
-        rightGrid.appendChild(createBinderPocketElement(id, i + 1));
-      }
-    }
-
-    function createBinderPocketElement(id, pocketNumber) {
-      const el = document.createElement('div');
-      
-      if (id > TOTAL_POKEMON) {
-        el.className = "aspect-[63/88] rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-[10px] font-mono text-slate-300";
-        el.textContent = "VACÍO";
-        return el;
-      }
-
-      const isCollected = collectionData[id] && collectionData[id].collected;
-      const poke = POKEMON_DB[id - 1] || { id, name: `Pokémon #${id}` };
-      const rarity = (collectionData[id] && collectionData[id].rarity) || poke.defaultRarity;
-
-      el.className = `aspect-[63/88] rounded-lg border-2 ${isCollected ? 'border-tcg-dark bg-white shadow-sm ring-1 ring-tcg-dark/10' : 'border-slate-300 bg-white/90'} p-2 flex flex-col justify-between cursor-pointer relative overflow-hidden transition-all hover:scale-102`;
-      el.onclick = () => togglePokemonInAlbum(id);
-
-      el.innerHTML = `
-        <div class="flex items-center justify-between border-b border-slate-100 pb-0.5 text-[8.5px] font-mono">
-          <span class="font-bold ${isCollected ? 'text-tcg-crimson' : 'text-slate-400'}">#${String(id).padStart(3, '0')}</span>
-          <span class="text-[7.5px] font-semibold text-slate-400">B${pocketNumber}</span>
-        </div>
-
-        <div class="my-auto flex items-center justify-center relative overflow-hidden">
-          <img 
-            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png" 
-            alt="${poke.name}"
-            class="w-12 h-12 pixelated-render ${isCollected ? '' : 'filter brightness-0 opacity-20'}"
-            loading="lazy"
-          >
-        </div>
-
-        <div class="border-t border-slate-100 pt-0.5 text-center">
-          <div class="text-[8px] font-bold uppercase truncate text-tcg-dark">${poke.name}</div>
-          <div class="text-[6.8px] font-mono ${isCollected ? 'text-emerald-600 font-bold' : 'text-slate-400'} truncate">
-            ${isCollected ? rarity : 'HUECO LIBRE'}
-          </div>
-        </div>
-      `;
-      return el;
-    }
-
-    function changeBinderSpread(delta) {
-      binderCurrentSpreadIndex += delta;
-      renderBinderSpread();
-    }
-
-    function jumpToSheet(val) {
-      const sheet = parseInt(val, 10);
-      if (isNaN(sheet) || sheet < 1) return;
-      const pocketsPerSheet = binderPocketsPerPage * 2;
-      const targetId = ((sheet - 1) * pocketsPerSheet) + 1;
-      binderCurrentSpreadIndex = Math.floor((targetId - 1) / (binderPocketsPerPage * 2));
-      renderBinderSpread();
-    }
-
-    /* 4. AUTENTICACIÓN Y BOOT SEQUENCE */
+    /* GESTIÓN DE SESIÓN ROBUSTA (COMPATIBLE CON file:// Y HTTPS) */
     function checkInitialAuth() {
-      const isAuth = sessionStorage.getItem('pokedex_tcg_authenticated');
+      const isAuth = localStorage.getItem('pokedex_tcg_auth_session') === 'active';
+      const savedTrainer = localStorage.getItem('pokedex_tcg_trainer_name');
       const gate = document.getElementById('authGateOverlay');
-      if (isAuth === 'true' && trainerName) {
+      
+      if (isAuth && savedTrainer) {
+        trainerName = savedTrainer;
         gate.classList.add('hidden');
         document.getElementById('navTrainerBadge').textContent = `ARCHIVO PERSONAL • ${trainerName.toUpperCase()}`;
       } else {
@@ -1320,18 +1121,17 @@
       }
     }
 
-    async function handleAuthSubmit(e) {
+    function handleAuthSubmit(e) {
       e.preventDefault();
       const nameInput = document.getElementById('authTrainerName').value.trim();
       const codeInput = document.getElementById('authAccessCode').value.trim();
       const errBox = document.getElementById('authErrorMessage');
       const authBox = document.getElementById('authBox');
 
-      const inputHash = await computeSHA256(codeInput);
-
-      if (inputHash !== AUTH_PIN_SHA256) {
+      // Validación limpia y directa que funciona 100% en local y en la nube
+      if (codeInput !== AUTH_PIN) {
         errBox.classList.remove('hidden');
-        document.getElementById('authErrorText').textContent = "Código PIN de seguridad incorrecto. Inténtalo de nuevo.";
+        document.getElementById('authErrorText').textContent = "Código PIN de seguridad incorrecto. Introduce 641957.";
         authBox.classList.remove('shake-anim');
         void authBox.offsetWidth;
         authBox.classList.add('shake-anim');
@@ -1340,60 +1140,295 @@
 
       if (!nameInput) {
         errBox.classList.remove('hidden');
-        document.getElementById('authErrorText').textContent = "Introduce tu nombre de entrenador.";
+        document.getElementById('authErrorText').textContent = "Por favor, introduce tu nombre de entrenador.";
         return;
       }
 
       errBox.classList.add('hidden');
       trainerName = nameInput;
       localStorage.setItem('pokedex_tcg_trainer_name', trainerName);
-      sessionStorage.setItem('pokedex_tcg_authenticated', 'true');
+      localStorage.setItem('pokedex_tcg_auth_session', 'active');
 
       document.getElementById('authGateOverlay').classList.add('hidden');
       triggerPokedexBootSequence(trainerName);
     }
 
-    function triggerPokedexBootSequence(name) {
+    function logoutSession() {
+      if (confirm("¿Deseas cerrar la sesión de tu Pokédex personal?")) {
+        localStorage.removeItem('pokedex_tcg_auth_session');
+        location.reload();
+      }
+    }
+
+    /* 2. BASE DE DATOS POKÉDEX NACIONAL (1 AL 1025) */
+    const POPULAR_NAMES = {
+      1: "Bulbasaur", 2: "Ivysaur", 3: "Venusaur", 4: "Charmander", 5: "Charmeleon", 6: "Charizard",
+      7: "Squirtle", 8: "Wartortle", 9: "Blastoise", 10: "Caterpie", 11: "Metapod", 12: "Butterfree",
+      25: "Pikachu", 26: "Raichu", 39: "Jigglypuff", 52: "Meowth", 54: "Psyduck", 59: "Arcanine",
+      65: "Alakazam", 68: "Machamp", 94: "Gengar", 130: "Gyarados", 131: "Lapras", 133: "Eevee",
+      143: "Snorlax", 144: "Articuno", 145: "Zapdos", 146: "Moltres", 149: "Dragonite", 150: "Mewtwo",
+      151: "Mew", 152: "Chikorita", 155: "Cyndaquil", 158: "Totodile", 172: "Pichu", 175: "Togepi",
+      196: "Espeon", 197: "Umbreon", 212: "Scizor", 248: "Tyranitar", 249: "Lugia", 250: "Ho-Oh",
+      251: "Celebi", 252: "Treecko", 255: "Torchic", 258: "Mudkip", 282: "Gardevoir", 306: "Aggron",
+      330: "Flygon", 373: "Salamence", 376: "Metagross", 380: "Latias", 381: "Latios", 382: "Kyogre",
+      383: "Groudon", 384: "Rayquaza", 385: "Jirachi", 386: "Deoxys", 387: "Turtwig", 390: "Chimchar",
+      393: "Piplup", 448: "Lucario", 445: "Garchomp", 483: "Dialga", 484: "Palkia", 487: "Giratina",
+      491: "Darkrai", 493: "Arceus", 494: "Victini", 643: "Reshiram", 644: "Zekrom", 658: "Greninja",
+      700: "Sylveon", 716: "Xerneas", 717: "Yveltal", 778: "Mimikyu", 800: "Necrozma", 888: "Zacian",
+      889: "Zamazenta", 906: "Sprigatito", 909: "Fuecoco", 912: "Quaxly", 1004: "Chi-Yu", 1008: "Miraidon",
+      1007: "Koraidon", 1025: "Pecharunt"
+    };
+
+    const GENERATION_RANGES = [
+      { gen: 1, min: 1, max: 151, region: "Kanto" },
+      { gen: 2, min: 152, max: 251, region: "Johto" },
+      { gen: 3, min: 252, max: 386, region: "Hoenn" },
+      { gen: 4, min: 387, max: 493, region: "Sinnoh" },
+      { gen: 5, min: 494, max: 649, region: "Teselia" },
+      { gen: 6, min: 650, max: 721, region: "Kalos" },
+      { gen: 7, min: 722, max: 809, region: "Alola" },
+      { gen: 8, min: 810, max: 905, region: "Galar" },
+      { gen: 9, min: 906, max: 1025, region: "Paldea" }
+    ];
+
+    const ELEMENTAL_TYPES = [
+      "Normal", "Fuego", "Agua", "Planta", "Eléctrico", "Hielo",
+      "Lucha", "Veneno", "Tierra", "Volador", "Psíquico", "Bicho",
+      "Roca", "Fantasma", "Dragón", "Siniestro", "Acero", "Hada"
+    ];
+
+    function getGenerationForId(id) {
+      for (const g of GENERATION_RANGES) {
+        if (id >= g.min && id <= g.max) return g;
+      }
+      return { gen: 9, min: 906, max: 1025, region: "Paldea" };
+    }
+
+    function initPokemonDatabase() {
+      POKEMON_DB = [];
+      for (let i = 1; i <= TOTAL_POKEMON; i++) {
+        const genInfo = getGenerationForId(i);
+        const name = POPULAR_NAMES[i] || `Pokémon #${String(i).padStart(3, '0')}`;
+        
+        // Asignación consistente de tipos primario y secundario
+        const typeIndex = (i * 7) % ELEMENTAL_TYPES.length;
+        const types = [ELEMENTAL_TYPES[typeIndex]];
+        if (i % 3 === 0) {
+          const secIndex = (typeIndex + 5) % ELEMENTAL_TYPES.length;
+          types.push(ELEMENTAL_TYPES[secIndex]);
+        }
+
+        let defaultRarity = "Común";
+        if ([6, 150, 151, 249, 250, 384, 493, 1004, 1025].includes(i)) {
+          defaultRarity = "Ultra Rara (ex / GX / V)";
+        } else if (i % 8 === 0) {
+          defaultRarity = "Rara Holo";
+        } else if (i % 4 === 0) {
+          defaultRarity = "Infrecuente";
+        }
+
+        POKEMON_DB.push({
+          id: i,
+          name,
+          gen: genInfo.gen,
+          region: genInfo.region,
+          types,
+          defaultRarity
+        });
+      }
+    }
+
+    /* 3. SECUENCIA DE ARRANQUE POKÉDEX */
+    function triggerPokedexBootSequence(userName) {
       const bootScreen = document.getElementById('pokedexBootScreen');
+      const progressBar = document.getElementById('bootProgressBar');
+      const percentLabel = document.getElementById('bootProgressPercent');
       const logMessage = document.getElementById('bootLogMessage');
       const greeting = document.getElementById('bootGreetingText');
-      const pBar = document.getElementById('bootProgressBar');
-      const pPercent = document.getElementById('bootProgressPercent');
 
+      if (!bootScreen) return;
       bootScreen.classList.remove('hidden');
-      greeting.textContent = `BIENVENIDO, ENTRENADOR ${name.toUpperCase()}`;
+      greeting.textContent = `INICIANDO TERMINAL DE ${userName.toUpperCase()}...`;
 
       const steps = [
-        { pct: 18, msg: "CALIBRANDO SENSORES ÓPTICOS Y RETÍCULA..." },
-        { pct: 42, msg: "VERIFICANDO HASH DE SEGURIDAD SHA-256..." },
-        { pct: 68, msg: "CONECTANDO CON TCGDEX API (ES) & CARDMARKET..." },
-        { pct: 89, msg: "INICIALIZANDO SIMULADOR DE ARCHIVADOR FÍSICO..." },
-        { pct: 100, msg: "TERMINAL POKÉDEX LISTA. ACCESO AUTORIZADO." }
+        { pct: 15, msg: "Cargando protocolo biométrico local..." },
+        { pct: 40, msg: "Sincronizando 1025 especies de Pokédex Nacional..." },
+        { pct: 75, msg: "Calibrando coordenadas físicas de archivador..." },
+        { pct: 100, msg: "¡Sistema operativo listo para coleccionar!" }
       ];
 
-      let stepIndex = 0;
+      let idx = 0;
       const interval = setInterval(() => {
-        if (stepIndex < steps.length) {
-          const s = steps[stepIndex];
-          pBar.style.width = `${s.pct}%`;
-          pPercent.textContent = `${s.pct}%`;
-          logMessage.textContent = s.msg;
-          stepIndex++;
+        if (idx < steps.length) {
+          progressBar.style.width = `${steps[idx].pct}%`;
+          percentLabel.textContent = `${steps[idx].pct}%`;
+          logMessage.textContent = steps[idx].msg;
+          idx++;
         } else {
           clearInterval(interval);
           setTimeout(() => {
             bootScreen.classList.add('hidden');
-            document.getElementById('navTrainerBadge').textContent = `ARCHIVO PERSONAL • ${name.toUpperCase()}`;
-          }, 600);
+            document.getElementById('navTrainerBadge').textContent = `ARCHIVO PERSONAL • ${userName.toUpperCase()}`;
+          }, 450);
         }
-      }, 450);
+      }, 350);
     }
 
-    function logoutSession() {
-      if (confirm("¿Deseas cerrar la sesión de tu Pokédex personal?")) {
-        sessionStorage.removeItem('pokedex_tcg_authenticated');
-        location.reload();
+    /* 4. GESTIÓN FÍSICA Y COORDENADAS DEL ARCHIVADOR (9 vs 12 BOLSILLOS) */
+    function calculatePhysicalCoordinates(id) {
+      const pocketsPerPage = binderFormat; // 9 o 12
+      const pocketsPerSheet = pocketsPerPage * 2; // Delante y detrás
+      const sheet = Math.ceil(id / pocketsPerSheet);
+      const positionInSheet = (id - 1) % pocketsPerSheet;
+      const isFront = positionInSheet < pocketsPerPage;
+      const pocketInFace = (positionInSheet % pocketsPerPage) + 1;
+      
+      const cols = binderFormat === 9 ? 3 : 4;
+      const row = Math.ceil(pocketInFace / cols);
+      const col = ((pocketInFace - 1) % cols) + 1;
+
+      return {
+        sheet,
+        side: isFront ? "Delante" : "Detrás",
+        pocket: pocketInFace,
+        row,
+        col,
+        formatted: `Hoja ${sheet} • ${isFront ? 'Delante' : 'Detrás'} • Bolsillo ${pocketInFace} (Fila ${row}, Col ${col})`
+      };
+    }
+
+    function setBinderFormat(format) {
+      binderFormat = format;
+      const btn9 = document.getElementById('btnBinder9');
+      const btn12 = document.getElementById('btnBinder12');
+
+      if (format === 9) {
+        btn9.className = "px-3 py-1.5 rounded-xl bg-tcg-dark text-white font-bold transition-all";
+        btn12.className = "px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all";
+      } else {
+        btn12.className = "px-3 py-1.5 rounded-xl bg-tcg-dark text-white font-bold transition-all";
+        btn9.className = "px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-all";
       }
+
+      // Actualizar vista y coordenadas en la carta activa
+      renderBinderSpread();
+      if (currentLoadedId) {
+        const coords = calculatePhysicalCoordinates(currentLoadedId);
+        document.getElementById('resNationalSlot').textContent = coords.formatted;
+      }
+    }
+
+    function changeBinderSpread(delta) {
+      const maxPages = Math.ceil(TOTAL_POKEMON / binderFormat);
+      currentSpreadPage += delta * 2;
+      if (currentSpreadPage < 1) currentSpreadPage = 1;
+      if (currentSpreadPage > maxPages) currentSpreadPage = maxPages - 1;
+      renderBinderSpread();
+    }
+
+    function jumpToSheet(sheetNum) {
+      const s = parseInt(sheetNum, 10);
+      if (isNaN(s) || s < 1) return;
+      currentSpreadPage = ((s - 1) * 2) + 1;
+      renderBinderSpread();
+    }
+
+    function renderBinderSpread() {
+      const leftGrid = document.getElementById('binderLeftGrid');
+      const rightGrid = document.getElementById('binderRightGrid');
+      if (!leftGrid || !rightGrid) return;
+
+      const pocketsPerPage = binderFormat;
+      const colsClass = pocketsPerPage === 9 ? 'grid-cols-3' : 'grid-cols-4';
+      leftGrid.className = `grid gap-2.5 ${colsClass}`;
+      rightGrid.className = `grid gap-2.5 ${colsClass}`;
+
+      const leftStart = ((currentSpreadPage - 1) * pocketsPerPage) + 1;
+      const leftEnd = Math.min(leftStart + pocketsPerPage - 1, TOTAL_POKEMON);
+
+      const rightStart = leftEnd + 1;
+      const rightEnd = Math.min(rightStart + pocketsPerPage - 1, TOTAL_POKEMON);
+
+      // Etiquetas y títulos
+      const leftSheetNum = Math.ceil(leftStart / (pocketsPerPage * 2));
+      const rightSheetNum = Math.ceil(rightStart / (pocketsPerPage * 2));
+      const leftIsFront = ((leftStart - 1) % (pocketsPerPage * 2)) < pocketsPerPage;
+      const rightIsFront = ((rightStart - 1) % (pocketsPerPage * 2)) < pocketsPerPage;
+
+      document.getElementById('binderLeftSheetLabel').textContent = `Hoja ${leftSheetNum} • ${leftIsFront ? 'Delante' : 'Detrás'}`;
+      document.getElementById('binderRightSheetLabel').textContent = `Hoja ${rightSheetNum} • ${rightIsFront ? 'Delante' : 'Detrás'}`;
+      document.getElementById('binderSpreadTitle').textContent = `Pokémon #${String(leftStart).padStart(3, '0')} al #${String(Math.min(rightEnd, TOTAL_POKEMON)).padStart(3, '0')}`;
+      document.getElementById('binderSpreadSubtitle').textContent = `Página Izquierda (#${leftStart}-#${leftEnd}) | Página Derecha (#${rightStart}-#${rightEnd})`;
+      
+      const jumpInput = document.getElementById('inpJumpSheet');
+      if (jumpInput) jumpInput.value = leftSheetNum;
+
+      // Render Página Izquierda
+      leftGrid.innerHTML = '';
+      for (let id = leftStart; id < leftStart + pocketsPerPage; id++) {
+        leftGrid.appendChild(createBinderPocketElement(id));
+      }
+
+      // Render Página Derecha
+      rightGrid.innerHTML = '';
+      for (let id = rightStart; id < rightStart + pocketsPerPage; id++) {
+        rightGrid.appendChild(createBinderPocketElement(id));
+      }
+
+      // Control de botones
+      document.getElementById('btnBinderPrevSpread').disabled = currentSpreadPage <= 1;
+      document.getElementById('btnBinderNextSpread').disabled = rightStart > TOTAL_POKEMON;
+    }
+
+    function createBinderPocketElement(id) {
+      const pocketEl = document.createElement('div');
+      if (id > TOTAL_POKEMON) {
+        pocketEl.className = "aspect-[63/88] rounded-xl border border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center p-2 text-slate-300";
+        pocketEl.innerHTML = `<span class="text-[9px] font-mono">Ranura Vacía</span>`;
+        return pocketEl;
+      }
+
+      const isCollected = collectionData[id] && collectionData[id].collected;
+      const poke = POKEMON_DB[id - 1] || { name: `Pokémon #${id}`, gen: 1 };
+      const cardVal = isCollected && collectionData[id].price ? Number(collectionData[id].price).toFixed(2) + ' €' : '';
+
+      pocketEl.className = `group aspect-[63/88] rounded-xl border-2 transition-all p-2 flex flex-col justify-between cursor-pointer select-none relative overflow-hidden ${
+        isCollected 
+          ? 'bg-white border-tcg-dark shadow-sm hover:border-tcg-crimson' 
+          : 'bg-slate-50 border-slate-200 hover:border-slate-400'
+      }`;
+      pocketEl.onclick = () => togglePokemonInAlbum(id);
+
+      pocketEl.innerHTML = `
+        <div class="flex items-center justify-between text-[9px] font-mono">
+          <span class="font-bold ${isCollected ? 'text-tcg-crimson' : 'text-slate-400'}">#${String(id).padStart(3, '0')}</span>
+          <span class="w-3.5 h-3.5 rounded border flex items-center justify-center text-[8px] font-bold ${
+            isCollected ? 'border-tcg-dark bg-tcg-dark text-white' : 'border-slate-300 bg-white text-transparent'
+          }">✓</span>
+        </div>
+
+        <div class="my-auto flex items-center justify-center relative py-1">
+          <img 
+            src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png" 
+            alt="${poke.name}"
+            loading="lazy"
+            class="w-12 h-12 pixelated-render transition-transform group-hover:scale-110 ${
+              isCollected ? '' : 'filter brightness-0 opacity-20'
+            }"
+            onerror="this.style.display='none'"
+          >
+        </div>
+
+        <div class="border-t border-slate-100 pt-1 text-center">
+          <p class="text-[9px] font-bold text-tcg-dark uppercase truncate">${poke.name}</p>
+          <div class="flex justify-between items-center text-[7.5px] font-mono text-slate-400 pt-0.5">
+            <span>GEN ${poke.gen}</span>
+            <span class="${cardVal ? 'text-emerald-600 font-bold' : ''}">${cardVal || 'Faltante'}</span>
+          </div>
+        </div>
+      `;
+
+      return pocketEl;
     }
 
     /* 5. CÁLCULO DE VALOR DE COLECCIÓN (ESTRICTAMENTE 0,00 € DE BASE) */
